@@ -39,3 +39,7 @@ Architectural and process decisions for the SDK. Each entry: date, decision, rat
 **Rationale:** The "isolation" benefit of keeping reference MCPs out of the workspace is theoretical for development — in production each MCP installs adam-mcp-py from PyPI. Workspace membership during dev keeps a single shared venv simple. Reference MCPs (just adam-greet for now) are explicitly tied to the SDK; coupling is honest.
 
 **Alternative considered:** Use `[tool.uv.sources] adam-mcp-py = { path = "../../python", editable = true }`. Rejected — same coupling, more brittle path string, breaks if directory structure changes.
+
+## 2026-05-04 — End-to-end smoke test passed
+
+`adam-mcp new smoke-test` produced a project that passed `adam-mcp audit` (status OK, strict mode, 0 findings) and whose 2 templated tests passed. v0.1 is shippable.
