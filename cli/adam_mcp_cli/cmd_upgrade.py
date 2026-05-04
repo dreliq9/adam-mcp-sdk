@@ -33,3 +33,32 @@ def parse_pin(pyproject_path: Path) -> Optional[str]:
             if m:
                 return m.group(2)
     return None
+
+
+def _version_tuple(v: str) -> tuple:
+    """Convert '0.2.10' to (0, 2, 10) for numeric comparison.
+
+    Padded with zeros so '0.2' and '0.2.0' compare equal.
+    """
+    parts = v.split(".")
+    return tuple(int(p) for p in parts) + (0,) * (3 - len(parts))
+
+
+def version_lt(a: str, b: str) -> bool:
+    """True if version a is less than version b. Numeric, not lexicographic."""
+    return _version_tuple(a) < _version_tuple(b)
+
+
+def update_pin(pyproject_path: Path, new_version: str) -> None:
+    """Rewrite pyproject.toml to pin adam-mcp-py exactly at new_version.
+
+    Replaces any existing adam-mcp-py pin (==, >=, range) with `==new_version`.
+    Preserves order, comments, and other dependencies via tomlkit.
+    """
+    doc = tomlkit.parse(pyproject_path.read_text())
+    deps = doc["project"]["dependencies"]
+    for i, dep in enumerate(deps):
+        if str(dep).startswith("adam-mcp-py"):
+            deps[i] = f"adam-mcp-py=={new_version}"
+            break
+    pyproject_path.write_text(tomlkit.dumps(doc))
