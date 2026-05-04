@@ -62,3 +62,27 @@ def update_pin(pyproject_path: Path, new_version: str) -> None:
             deps[i] = f"adam-mcp-py=={new_version}"
             break
     pyproject_path.write_text(tomlkit.dumps(doc))
+
+
+def _pypi_latest() -> Optional[str]:
+    """Query PyPI for the latest released adam-mcp-py version. Returns None on any error.
+
+    Note: as of v0.2 launch, adam-mcp-py is not published on PyPI; this returns None.
+    Kept as the preferred source for when publishing happens.
+    """
+    try:
+        import urllib.request, json
+        with urllib.request.urlopen("https://pypi.org/pypi/adam-mcp-py/json", timeout=3) as r:
+            data = json.load(r)
+        return data["info"]["version"]
+    except Exception:
+        return None
+
+
+def fetch_latest_version() -> str:
+    """Resolve the latest adam-mcp-py version. PyPI first; fall back to installed __version__."""
+    pypi = _pypi_latest()
+    if pypi is not None:
+        return pypi
+    import adam_mcp_py
+    return adam_mcp_py.__version__

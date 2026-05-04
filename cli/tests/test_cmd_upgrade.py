@@ -66,3 +66,24 @@ def test_update_pin_replaces_range_with_exact(tmp_path: Path):
     text = pyproj.read_text()
     assert "adam-mcp-py==0.2.0" in text
     assert ">=0.1" not in text
+
+
+def test_fetch_latest_version_falls_back_to_installed_version(monkeypatch):
+    """When PyPI lookup fails (no network / not published), fall back to installed __version__."""
+    from adam_mcp_cli import cmd_upgrade
+
+    # Force the PyPI path to return None
+    monkeypatch.setattr(cmd_upgrade, "_pypi_latest", lambda: None)
+    # Force the fallback to return a known value
+    import adam_mcp_py
+    monkeypatch.setattr(adam_mcp_py, "__version__", "0.9.9")
+
+    assert cmd_upgrade.fetch_latest_version() == "0.9.9"
+
+
+def test_fetch_latest_version_prefers_pypi_when_available(monkeypatch):
+    from adam_mcp_cli import cmd_upgrade
+    monkeypatch.setattr(cmd_upgrade, "_pypi_latest", lambda: "1.2.3")
+    import adam_mcp_py
+    monkeypatch.setattr(adam_mcp_py, "__version__", "0.9.9")
+    assert cmd_upgrade.fetch_latest_version() == "1.2.3"
