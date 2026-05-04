@@ -1,5 +1,5 @@
 [tool.uv.workspace]
-members = ["python", "cli"]
+members = ["python", "cli", "reference-mcp/adam-greet"]
 
 [tool.ruff]
 line-length = 100
