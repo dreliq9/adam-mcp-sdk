@@ -34,3 +34,12 @@ def test_audit_warns_when_advisory_mode_on_external_mcp(tmp_target: Path):
     report = audit_project(tmp_target)
     assert report["mode"] == "advisory"
     assert all(f["severity"] != "FAIL" for f in report.get("findings", [])), report
+
+
+def test_registry_contains_all_known_rule_ids():
+    """REGISTRY must enumerate every rule the audit currently enforces."""
+    from adam_mcp_cli.audit_rules import REGISTRY
+    rule_ids = {r.rule_id for r in REGISTRY}
+    expected = {"§3.13", "§3.14", "§3.15", "§3.16", "§3.17", "§2.7", "§2.11", "§6.30"}
+    missing = expected - rule_ids
+    assert not missing, f"REGISTRY missing rule_ids: {missing}"
