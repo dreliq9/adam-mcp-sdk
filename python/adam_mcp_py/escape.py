@@ -18,5 +18,5 @@ def passthrough(fn: F) -> F:
 
 
 def is_passthrough(fn: object) -> bool:
-    """Return True if fn was decorated with @passthrough."""
+    """Return True if fn was decorated with @passthrough. Helper for §6.30."""
     return bool(getattr(fn, _PASSTHROUGH_MARKER, False))

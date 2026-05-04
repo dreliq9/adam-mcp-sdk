@@ -19,7 +19,7 @@ class BackendProtocol(Protocol):
 
 
 def detect_backend(backends: Sequence[BackendProtocol]) -> BackendProtocol | None:
-    """Return the first backend with .available = True, or None."""
+    """Return the first backend with .available = True, or None. Helper for §2.6."""
     for b in backends:
         if b.available:
             return b
