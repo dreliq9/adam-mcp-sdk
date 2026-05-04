@@ -9,6 +9,7 @@ from .backend import BackendProtocol, detect_backend
 from .workflows import Workflow
 from .output import output_dir
 from .escape import passthrough, is_passthrough
+from .base_server import BaseServer
 
 __all__ = [
     "Result",
@@ -21,5 +22,6 @@ __all__ = [
     "output_dir",
     "passthrough",
     "is_passthrough",
+    "BaseServer",
 ]
 __version__ = "0.1.0"
