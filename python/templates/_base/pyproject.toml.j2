@@ -1,0 +1,27 @@
+[project]
+name = "{{name}}"
+version = "0.1.0"
+description = "{{description}}"
+requires-python = ">=3.11"
+dependencies = [
+    "adam-mcp-py==0.1.0",
+    "mcp>=1.0",
+    "pydantic>=2.5",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+{{name}} = "{{name_snake}}.cli:main"
+{{name}}-mcp = "{{name_snake}}.mcp.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["{{name_snake}}"]

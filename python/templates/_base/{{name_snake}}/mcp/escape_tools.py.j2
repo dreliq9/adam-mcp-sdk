@@ -1,0 +1,12 @@
+"""Escape-hatch tool — required by §6.30."""
+from __future__ import annotations
+from adam_mcp_py import Result, passthrough
+
+
+@passthrough
+def {{name_snake}}_passthrough(payload: dict) -> Result[dict]:
+    """Bypass all synthesis logic. Required escape hatch (§6.30).
+
+    Replace this body with a real raw-call into the underlying API/engine/protocol.
+    """
+    return Result.ok(value=payload, raw=payload, mode_tag="[PASSTHROUGH]")

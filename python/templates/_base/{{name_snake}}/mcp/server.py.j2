@@ -1,0 +1,17 @@
+"""MCP server entrypoint for {{name}}. Wires every tool category into BaseServer."""
+from __future__ import annotations
+from adam_mcp_py import BaseServer
+
+from . import core_tools, escape_tools
+
+_server = BaseServer(name="{{name}}")
+_server.tool()(core_tools.example_tool)
+_server.tool()(escape_tools.{{name_snake}}_passthrough)
+
+
+def main() -> None:
+    _server.run()
+
+
+if __name__ == "__main__":
+    main()

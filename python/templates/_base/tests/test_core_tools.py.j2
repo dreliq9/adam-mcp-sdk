@@ -1,0 +1,14 @@
+"""Smoke tests for {{name}} core tools."""
+from adam_mcp_py import Status
+from {{name_snake}}.mcp.core_tools import example_tool
+
+
+def test_example_tool_ok():
+    r = example_tool({"name": "Adam"})
+    assert r.status == Status.OK
+    assert "Adam" in r.value
+
+
+def test_example_tool_validates():
+    r = example_tool({"name": ""})
+    assert r.status == Status.FAIL

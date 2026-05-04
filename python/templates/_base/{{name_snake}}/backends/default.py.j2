@@ -1,0 +1,9 @@
+"""Default backend for {{name}}. Implements §2.6."""
+
+
+class DefaultBackend:
+    mode_tag = "[DEFAULT]"
+    available = True
+
+    def call(self, payload: dict) -> dict:
+        return {"echo": payload}

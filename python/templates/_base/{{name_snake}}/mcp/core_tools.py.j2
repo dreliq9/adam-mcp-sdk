@@ -1,0 +1,13 @@
+"""Core atomic tools. Implements §2.7. Replace with domain-appropriate categories."""
+from __future__ import annotations
+from adam_mcp_py import Result, validates
+from ..schema import ExampleInput
+from ..backends import DefaultBackend
+
+_backend = DefaultBackend()
+
+
+@validates(ExampleInput)
+def example_tool(input: ExampleInput) -> Result[str]:
+    """Replace with a real tool. Implements §1.1, §1.2, §1.4."""
+    return Result.ok(value=f"hello {input.name}", mode_tag=_backend.mode_tag)

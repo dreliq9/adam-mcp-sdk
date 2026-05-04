@@ -1,0 +1,49 @@
+# {{name}} — SPEC
+
+## What this is
+
+{{description}}
+
+## Repository layout
+
+```
+{{name}}/
+  pyproject.toml
+  SPEC.md
+  LLM_GUIDE.md
+  CLAUDE.md
+  README.md
+  CHANGELOG.md
+  ROADMAP.md
+  DECISIONS.md
+  AUDIT.md
+  server.json
+  {{name_snake}}/
+    __init__.py
+    types.py
+    schema.py
+    cli.py
+    backends/
+    workflows/
+    mcp/
+      server.py
+      core_tools.py
+      escape_tools.py
+  tests/
+```
+
+## Dependencies
+
+```toml
+adam-mcp-py == 0.1.0
+mcp >= 1.0
+pydantic >= 2.5
+```
+
+## Tools
+
+TBD — fill in atomic ops grouped by `_tools.py` category.
+
+## Build instruction
+
+Build exactly what is described above. Do not add features not listed.
