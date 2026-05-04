@@ -87,3 +87,21 @@ def test_fetch_latest_version_prefers_pypi_when_available(monkeypatch):
     import adam_mcp_py
     monkeypatch.setattr(adam_mcp_py, "__version__", "0.9.9")
     assert cmd_upgrade.fetch_latest_version() == "1.2.3"
+
+
+def test_upgrade_dry_run_does_not_edit_files(tmp_path: Path, monkeypatch):
+    from adam_mcp_cli.cmd_upgrade import upgrade
+    from adam_mcp_cli import cmd_upgrade as cu
+
+    pyproj = tmp_path / "pyproject.toml"
+    original = '[project]\nname = "x"\ndependencies = ["adam-mcp-py==0.1.0"]\n'
+    pyproj.write_text(original)
+    monkeypatch.setattr(cu, "fetch_latest_version", lambda: "0.2.0")
+
+    report = upgrade(tmp_path, target=None, dry_run=True)
+
+    assert report["status"] == "OK"
+    assert report["value"]["current"] == "0.1.0"
+    assert report["value"]["target"] == "0.2.0"
+    # File was NOT edited
+    assert pyproj.read_text() == original

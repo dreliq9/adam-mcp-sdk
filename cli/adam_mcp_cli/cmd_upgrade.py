@@ -86,3 +86,86 @@ def fetch_latest_version() -> str:
         return pypi
     import adam_mcp_py
     return adam_mcp_py.__version__
+
+
+def upgrade(path: Path, target: Optional[str], dry_run: bool) -> dict:
+    """Bump the adam-mcp-py pin in `path` and run audit. Returns Result-shaped dict.
+
+    Returns dict with keys: status, mode_tag, value, raw, hint, metrics, diagnostics.
+    Behavior matches HOUSE_STYLE.md §1 (Result envelope) and design spec §7.
+    """
+    pyproject_path = path / "pyproject.toml"
+    if not pyproject_path.exists():
+        return _result_fail(
+            hint=f"pyproject.toml not found at {pyproject_path}. "
+                 "Is this an MCP project root?",
+        )
+
+    try:
+        current = parse_pin(pyproject_path)
+    except Exception as e:
+        return _result_fail(raw=str(e), hint=f"Cannot parse {pyproject_path}: {e}")
+
+    if current is None:
+        return _result_fail(
+            hint="pyproject.toml has no adam-mcp-py dependency. "
+                 "Run `adam-mcp new` for a fresh project, or add the dep manually.",
+        )
+
+    target = target or fetch_latest_version()
+
+    if target == current:
+        return _result_ok(value={"current": current, "target": target},
+                          hint=f"Already on {current}.")
+
+    if version_lt(target, current):
+        return _result_fail(
+            hint=f"Cannot downgrade ({current} → {target}). "
+                 "adam-mcp does not support downgrades. Edit pyproject.toml manually if needed.",
+        )
+
+    if dry_run:
+        return _result_ok(
+            value={"current": current, "target": target,
+                   "would_edit": [str(pyproject_path)]},
+            hint=f"Dry run: would upgrade {current} → {target}.",
+        )
+
+    update_pin(pyproject_path, target)
+
+    sync = subprocess.run(["uv", "sync"], cwd=str(path), capture_output=True, text=True)
+    if sync.returncode != 0:
+        return _result_fail(
+            raw=sync.stderr,
+            hint="`uv sync` failed — likely a transitive dep conflict. "
+                 "Read the error above, fix pyproject.toml, then retry.",
+        )
+
+    # Run audit
+    from .cmd_audit import audit_project
+    audit_report = audit_project(path)
+    findings = audit_report.get("findings", [])
+
+    status = "WARN" if findings else "OK"
+    return {
+        "status": status,
+        "mode_tag": f"upgrade:{current}→{target}",
+        "value": {"current": current, "target": target, "findings": findings},
+        "raw": None,
+        "metrics": {"findings_count": len(findings)},
+        "diagnostics": [f["message"] for f in findings],
+        "hint": (
+            f"Upgraded {current} → {target}. {len(findings)} finding(s) — work through them."
+            if findings else f"Upgraded {current} → {target}. No findings."
+        ),
+    }
+
+
+def _result_ok(value=None, hint=None) -> dict:
+    return {"status": "OK", "mode_tag": None, "value": value, "raw": None,
+            "metrics": {}, "diagnostics": [], "hint": hint}
+
+
+def _result_fail(raw=None, hint=None) -> dict:
+    return {"status": "FAIL", "mode_tag": None, "value": None, "raw": raw,
+            "metrics": {}, "diagnostics": [], "hint": hint}
