@@ -42,46 +42,12 @@ def cmd_audit(
 ):
     """Run mechanical conformance check against HOUSE_STYLE.md."""
     if self_check:
-        report = _self_check()
+        report = _self_check_v2()
     else:
         report = audit_project(path)
     typer.echo(json.dumps(report, indent=2))
     if report["status"] == "FAIL":
         raise typer.Exit(code=1)
-
-
-def _self_check() -> dict:
-    """Cross-link integrity check for the SDK repo. Implements §5.27."""
-    from importlib import import_module
-    spec_path = Path(__file__).resolve().parents[2] / "HOUSE_STYLE.md"
-    if not spec_path.exists():
-        return {"status": "FAIL", "value": None, "hint": "HOUSE_STYLE.md missing", "diagnostics": [], "findings": []}
-    text = spec_path.read_text()
-    findings: list[dict] = []
-    import re
-    for m in re.finditer(r"→ Library: `?adam_mcp_py\.([\w_]+)(?:\.[\w_.]+)?`?", text):
-        symbol = m.group(1)  # top-level symbol only; ignore attribute paths after the first dot
-        try:
-            mod = import_module("adam_mcp_py")
-            if not hasattr(mod, symbol):
-                findings.append({"rule": "§5.25", "severity": "FAIL",
-                                 "message": f"Spec references adam_mcp_py.{symbol} but symbol is not exported",
-                                 "hint": "Add to adam_mcp_py/__init__.py or update spec"})
-        except ImportError as e:
-            findings.append({"rule": "§5.25", "severity": "FAIL",
-                             "message": f"Cannot import adam_mcp_py: {e}",
-                             "hint": "Install adam-mcp-py first"})
-            break
-    fails = sum(1 for f in findings if f["severity"] == "FAIL")
-    return {
-        "status": "FAIL" if fails else "OK",
-        "mode": "self-check",
-        "value": None,
-        "metrics": {"findings": len(findings), "fails": fails},
-        "diagnostics": [f["message"] for f in findings],
-        "findings": findings,
-        "hint": "Update spec or library exports" if fails else None,
-    }
 
 
 def _self_check_v2() -> dict:
