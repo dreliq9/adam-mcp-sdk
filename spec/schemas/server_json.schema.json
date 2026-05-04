@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP server.json",
+  "type": "object",
+  "required": ["name", "description", "version", "runtime"],
+  "properties": {
+    "name": {"type": "string"},
+    "description": {"type": "string"},
+    "version": {"type": "string"},
+    "runtime": {"type": "string", "enum": ["python", "node", "zig", "rust"]},
+    "entrypoint": {"type": "string"},
+    "license": {"type": "string"}
+  }
+}
