@@ -120,6 +120,15 @@ def _self_check_v2() -> dict:
                              "hint": "Install adam-mcp-py first"})
             break
 
+    # === Check 2: every REGISTRY rule_id appears in HOUSE_STYLE.md ===
+    for rule in REGISTRY:
+        # Match either `## §X.Y` headers or `**§X.Y**` references
+        pattern = re.escape(rule.rule_id)
+        if not re.search(rf"(?:^##+ {pattern}\b|\*\*{pattern}\*\*)", spec_text, flags=re.MULTILINE):
+            findings.append({"rule": "§5.28", "severity": "FAIL",
+                             "message": f"REGISTRY contains {rule.rule_id} but HOUSE_STYLE.md does not document it",
+                             "hint": f"Add a section for {rule.rule_id} to HOUSE_STYLE.md, or remove the rule from REGISTRY."})
+
     # === Check 3: CHANGELOG ### Breaking entries cross-link to REGISTRY ===
     changelog_path = repo / "CHANGELOG.md"
     if changelog_path.exists():

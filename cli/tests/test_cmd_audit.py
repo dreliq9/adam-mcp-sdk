@@ -45,6 +45,28 @@ def test_registry_contains_all_known_rule_ids():
     assert not missing, f"REGISTRY missing rule_ids: {missing}"
 
 
+def test_self_check_catches_unreferenced_registry_rule(tmp_path: Path, monkeypatch):
+    """Self-check fails when REGISTRY has a rule_id that HOUSE_STYLE.md doesn't document."""
+    from adam_mcp_cli.main import _self_check_v2
+    from adam_mcp_cli.audit_rules import REGISTRY, AuditRule, Finding
+
+    # HOUSE_STYLE.md missing §9.42; CHANGELOG empty
+    (tmp_path / "HOUSE_STYLE.md").write_text("# Spec\n\n## §3.13\nSPEC.md required.\n")
+    (tmp_path / "CHANGELOG.md").write_text("# Changelog\n")
+    monkeypatch.setattr("adam_mcp_cli.main._SELF_CHECK_REPO_ROOT", tmp_path)
+
+    # Inject a synthetic rule into the live REGISTRY for the test
+    fake_rule = AuditRule("§9.42", "HOUSE_STYLE.md §9.42", "FAIL", "fake", lambda p: [])
+    REGISTRY.append(fake_rule)
+    try:
+        report = _self_check_v2()
+    finally:
+        REGISTRY.remove(fake_rule)
+
+    assert report["status"] == "FAIL", report
+    assert any("§9.42" in f["message"] for f in report["findings"]), report
+
+
 def test_self_check_catches_orphan_changelog_breaking(tmp_path: Path, monkeypatch):
     """Self-check fails when a CHANGELOG ### Breaking bullet references a non-existent rule_id."""
     from adam_mcp_cli.main import _self_check_v2
