@@ -7,6 +7,7 @@ dependencies = [
     "adam-mcp-py==0.1.0",
     "typer>=0.12",
     "jinja2>=3.1",
+    "tomlkit>=0.13",
 ]
 
 [project.optional-dependencies]
