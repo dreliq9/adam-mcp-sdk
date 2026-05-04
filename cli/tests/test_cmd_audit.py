@@ -82,3 +82,16 @@ def test_self_check_catches_orphan_changelog_breaking(tmp_path: Path, monkeypatc
     report = _self_check_v2()
     assert report["status"] == "FAIL", report
     assert any("§9.99" in f["message"] for f in report["findings"]), report
+
+
+def test_self_check_passes_on_real_repo():
+    """Sanity check: the SDK's own state passes the v0.2 self-check.
+
+    If this fails, either: (a) a real registry/spec drift exists and must be fixed,
+    or (b) the test's idea of 'real repo' is wrong (path issue).
+    """
+    from adam_mcp_cli.main import _self_check_v2
+    report = _self_check_v2()
+    assert report["status"] == "OK", (
+        f"Self-check failed on real SDK repo. Findings: {report['findings']}"
+    )
