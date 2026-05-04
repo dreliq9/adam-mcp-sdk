@@ -1,0 +1,8 @@
+{
+  "name": "adam-greet",
+  "description": "Reference MCP — context-aware morning greeting (weather + calendar + music synthesis).",
+  "version": "0.1.0",
+  "runtime": "python",
+  "entrypoint": "adam_greet.mcp.server:main",
+  "license": "MIT"
+}
