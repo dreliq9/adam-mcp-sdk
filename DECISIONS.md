@@ -29,3 +29,13 @@ Architectural and process decisions for the SDK. Each entry: date, decision, rat
 **Rationale:** §2.11 explicitly carves out `adam-mcp-py` from the exact-pin rule ("Compatible-release allowed only for `adam-mcp-py` itself"). Libraries that other projects depend on should not force exact dep versions on consumers — that locks every downstream MCP to the same dependency tree. Exact pins remain mandatory for MCP **projects** (kipilot, caid-mcp, adam-greet, etc.), per §2.11.
 
 **Resolves design-doc §13 Q5** (the previously deferred question about adam-mcp-py's pin style): defer to §2.11's carveout. Reconsider only if compat issues arise.
+
+## 2026-05-04 — Reference MCP is a workspace member (deviation from Task 1)
+
+**Decision:** `reference-mcp/adam-greet` is included in the root `pyproject.toml` workspace `members` list, alongside `python` and `cli`.
+
+**Context:** The plan originally listed only `["python", "cli"]`. Adam-greet's `pyproject.toml` declares `[tool.uv.sources] adam-mcp-py = { workspace = true }` so it can use the local in-development library. That source resolver only works when both packages are workspace members.
+
+**Rationale:** The "isolation" benefit of keeping reference MCPs out of the workspace is theoretical for development — in production each MCP installs adam-mcp-py from PyPI. Workspace membership during dev keeps a single shared venv simple. Reference MCPs (just adam-greet for now) are explicitly tied to the SDK; coupling is honest.
+
+**Alternative considered:** Use `[tool.uv.sources] adam-mcp-py = { path = "../../python", editable = true }`. Rejected — same coupling, more brittle path string, breaks if directory structure changes.
