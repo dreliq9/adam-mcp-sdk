@@ -21,3 +21,11 @@ Architectural and process decisions for the SDK. Each entry: date, decision, rat
 **Decision:** Every spec rule names its library symbol; every library symbol names its rule. `adam-mcp audit --self-check` validates this in CI.
 
 **Rationale:** Drift between spec and library is the #1 risk. Mechanical enforcement beats discipline.
+
+## 2026-05-04 — Library pin style: compatible-release for adam-mcp-py runtime deps
+
+**Decision:** `adam-mcp-py`'s own `pyproject.toml` uses minimum/compatible-release pins (`mcp>=1.0`, `pydantic>=2.5`), not exact pins.
+
+**Rationale:** §2.11 explicitly carves out `adam-mcp-py` from the exact-pin rule ("Compatible-release allowed only for `adam-mcp-py` itself"). Libraries that other projects depend on should not force exact dep versions on consumers — that locks every downstream MCP to the same dependency tree. Exact pins remain mandatory for MCP **projects** (kipilot, caid-mcp, adam-greet, etc.), per §2.11.
+
+**Resolves design-doc §13 Q5** (the previously deferred question about adam-mcp-py's pin style): defer to §2.11's carveout. Reconsider only if compat issues arise.
