@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
+from typing import Optional
 import typer
 
 # Module-level repo root, monkeypatchable for tests
@@ -45,6 +46,20 @@ def cmd_audit(
         report = _self_check_v2()
     else:
         report = audit_project(path)
+    typer.echo(json.dumps(report, indent=2))
+    if report["status"] == "FAIL":
+        raise typer.Exit(code=1)
+
+
+@app.command("upgrade")
+def cmd_upgrade(
+    path: Path = typer.Argument(Path.cwd(), help="MCP project root; defaults to cwd"),
+    to: Optional[str] = typer.Option(None, "--to", help="Target adam-mcp-py version (default: latest)"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Print what would happen, don't edit files"),
+):
+    """Bump adam-mcp-py pin and run audit. See HOUSE_STYLE.md §7."""
+    from .cmd_upgrade import upgrade
+    report = upgrade(path, target=to, dry_run=dry_run)
     typer.echo(json.dumps(report, indent=2))
     if report["status"] == "FAIL":
         raise typer.Exit(code=1)
