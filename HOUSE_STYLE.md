@@ -151,6 +151,21 @@ Periodic research-driven SOTA survey. Compiled from parallel research agents. Co
 - `DEVLOG.md` — running notes during implementation
 - `task_plan.md`, `progress.md`, `findings.md` — planning-with-files artifacts inside the project
 
+### §3.18 — Audit rule_id stability
+
+`rule_id` strings (`§N.NN`) in `cli/adam_mcp_cli/audit_rules.py::REGISTRY` are stable forever once published. They are the cross-link substrate for the upgrade system (audit-as-migration); a rename or reassignment would silently break downstream MCPs' upgrade paths.
+
+**Rules:**
+- Once a rule_id appears in a tagged release, its meaning is frozen.
+- A rule may be deprecated (removed from REGISTRY) but its `rule_id` is reserved permanently — never reassigned to a different rule. Removals recorded in `DECISIONS.md`.
+- New rules use the next free number in their chapter.
+- A rule's `severity_default` may change across versions. That is a breaking change and requires a CHANGELOG `### Breaking` entry referencing the rule_id, but the rule_id itself stays put.
+- A rule's `check` function may be tightened (stricter behavior under the same rule_id). That is also a breaking change.
+
+→ CLI: `adam_mcp_cli.audit_rules.AuditRule` (the dataclass that carries the rule_id).
+
+**Cross-link enforcement:** `adam-mcp audit --self-check` verifies that every REGISTRY rule_id appears in this spec, and that every CHANGELOG `### Breaking` bullet's `**§X.Y**` resolves to a real REGISTRY rule_id.
+
 ---
 
 ## §4 Authoring patterns (apply when relevant)
