@@ -4,7 +4,7 @@ All notable changes to adam-mcp-sdk.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project uses SemVer for the library and CalVer for the spec.
 
-## [Unreleased]
+## [0.2.0] — 2026-05-04
 
 ### Added
 - `adam-mcp upgrade [path] [--to VERSION] [--dry-run]` subcommand: bumps `adam-mcp-py` pin in target MCP, runs `uv sync`, runs audit, returns Result with findings.
