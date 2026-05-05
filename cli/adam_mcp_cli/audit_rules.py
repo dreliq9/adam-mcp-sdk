@@ -27,6 +27,20 @@ class Finding:
         return {"rule": self.rule, "severity": self.severity, "message": self.message, "hint": self.hint}
 
 
+@dataclass(frozen=True)
+class AuditRule:
+    """A single audit rule.
+
+    rule_id is stable forever once published — never reassigned to a different rule.
+    Removals recorded in DECISIONS.md.
+    """
+    rule_id: str          # e.g. "§3.13"
+    spec_section: str     # e.g. "HOUSE_STYLE.md §3.13"
+    severity_default: str # "FAIL" or "WARN"
+    description: str      # short human-readable name
+    check: Callable[[Path], list[Finding]]
+
+
 def _is_advisory(project_root: Path) -> bool:
     """Advisory mode: project doesn't depend on adam-mcp-py. Treat findings as WARN at most."""
     pyproject = project_root / "pyproject.toml"
@@ -112,13 +126,45 @@ def _check_tool_files_naming(project_root: Path) -> list[Finding]:
     return findings
 
 
-ALL_RULES: list[Callable[[Path], list[Finding]]] = [
-    _check_required_files,
-    _check_llm_guide_sections,
-    _check_spec_md_sections,
-    _check_passthrough_exists,
-    _check_tool_files_naming,
+REGISTRY: list[AuditRule] = [
+    AuditRule("§3.13", "HOUSE_STYLE.md §3.13", "FAIL",
+              "SPEC.md present + has required sections",
+              _check_spec_md_sections),
+    AuditRule("§3.14", "HOUSE_STYLE.md §3.14", "FAIL",
+              "LLM_GUIDE.md present + has required sections",
+              _check_llm_guide_sections),
+    AuditRule("§3.15", "HOUSE_STYLE.md §3.15", "FAIL",
+              "Required project files present (CLAUDE.md, README.md, etc.)",
+              _check_required_files),
+    AuditRule("§3.16", "HOUSE_STYLE.md §3.16", "FAIL",
+              "AUDIT.md present",
+              _check_required_files),  # same checker covers it
+    AuditRule("§3.17", "HOUSE_STYLE.md §3.17", "FAIL",
+              "README/CHANGELOG/ROADMAP/DECISIONS/server.json present",
+              _check_required_files),  # same checker covers it
+    AuditRule("§2.7", "HOUSE_STYLE.md §2.7", "WARN",
+              "Tool files split by area (no over-stuffed server.py)",
+              _check_tool_files_naming),
+    AuditRule("§2.11", "HOUSE_STYLE.md §2.11", "FAIL",
+              "pyproject.toml exists",
+              _check_required_files),  # same checker covers it
+    AuditRule("§6.30", "HOUSE_STYLE.md §6.30", "FAIL",
+              "MCP has @passthrough-decorated escape tool",
+              _check_passthrough_exists),
 ]
+
+
+def _unique_preserving_order(items):
+    seen = set()
+    out = []
+    for x in items:
+        if id(x) not in seen:
+            seen.add(id(x))
+            out.append(x)
+    return out
+
+
+ALL_RULES: list[Callable[[Path], list[Finding]]] = _unique_preserving_order([r.check for r in REGISTRY])
 
 
 def run_all_rules(project_root: Path) -> tuple[list[Finding], str]:

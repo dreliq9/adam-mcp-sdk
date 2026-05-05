@@ -43,3 +43,65 @@ Architectural and process decisions for the SDK. Each entry: date, decision, rat
 ## 2026-05-04 — End-to-end smoke test passed
 
 `adam-mcp new smoke-test` produced a project that passed `adam-mcp audit` (status OK, strict mode, 0 findings) and whose 2 templated tests passed. v0.1 is shippable.
+
+## 2026-05-04 — v0.2 Spec 1: audit-as-migration
+
+**Decision:** Migrations are audit rules. No parallel transform engine, no codemod runner.
+
+**Rationale:** Reuses v0.1 audit infrastructure. Forces every breaking change to ship with a self-explaining hint. Keeps v0.2 small enough to ship.
+
+**Alternatives considered:** pure docs (too loose), codemods (too much engineering for current scale), hybrid (defer to v0.3 if needed).
+
+## 2026-05-04 — CHANGELOG cross-link discipline
+
+**Decision:** Every `### Breaking` bullet starts with `**§X.Y**` referencing a real `rule_id`; bullet body contains a `Migration:` line. `adam-mcp audit --self-check` enforces against the most recent CHANGELOG version block.
+
+**Rationale:** Discipline for B (audit-as-migration) — without it, the system silently degrades into "release notes + good luck."
+
+## 2026-05-04 — rule_id format = `§N.NN`, stable forever
+
+**Decision:** rule_ids match HOUSE_STYLE.md anchors. Stable forever once published. Reassignment forbidden. Deprecations recorded here.
+
+**Rationale:** rule_ids are the cross-link substrate for the upgrade system. Renames break downstream MCPs.
+
+## 2026-05-04 — Single-version-jump for upgrades
+
+**Decision:** `adam-mcp upgrade` does not walk through intermediate versions. Bumping 0.2 → 0.5 surfaces all of 0.5's findings at once.
+
+**Rationale:** Audit is current-state. Walking is more ceremony for the same outcome.
+
+## 2026-05-04 — No downgrade support in CLI
+
+**Decision:** `adam-mcp upgrade` returns FAIL on downgrade attempts.
+
+**Rationale:** Downgrades are rare and risky; manual `pyproject.toml` edit + `uv sync` is the explicit path. Don't tempt people with an automated downgrade.
+
+## 2026-05-04 — No git operations in CLI
+
+**Decision:** `adam-mcp upgrade` does not commit, branch, or stash. Slash command suggests commits but never runs them.
+
+**Rationale:** Per `~/CLAUDE.md` safety boundary, git operations need explicit user approval.
+
+## 2026-05-04 — Batch-fix strategy in `/mcp-upgrade`
+
+**Decision:** Slash command works through all findings, then re-audits. Not per-finding interactive.
+
+**Rationale:** Adam's "just do the thing" preference. Diff review is the gate, not finding-by-finding approval.
+
+## 2026-05-04 — Max 3 audit iterations in `/mcp-upgrade`
+
+**Decision:** Hard cap on re-audit loops to prevent oscillation from buggy rules.
+
+**Rationale:** Belt for the case where fixing finding A introduces finding B.
+
+## 2026-05-04 — No bulk-MCP upgrade in v0.2
+
+**Decision:** `adam-mcp upgrade` operates on one project at a time.
+
+**Rationale:** Single-project primitive is the right abstraction first. Bulk upgrade is v0.3+ if the manual loop becomes painful.
+
+## 2026-05-04 — No rollback support in v0.2
+
+**Decision:** Git is the rollback story. `adam-mcp upgrade` does not maintain a "previous state" snapshot.
+
+**Rationale:** Out of scope for current design. Revisit in v0.3 if painful in practice.

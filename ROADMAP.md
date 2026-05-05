@@ -9,10 +9,20 @@
 - Reference MCP `adam-greet` complete in Python, passes audit
 
 ## v0.2
-- Zig library + templates (will leverage existing Zig corpus in corpus-retrieval system)
-- `/mcp-tool`, `/mcp-upgrade` slash commands
-- `adam-mcp tool add` / `workflow add` / `upgrade` subcommands
-- Migration system for library upgrades
+
+### Done (Spec 1 — upgrade system)
+- AuditRule registry + rule_id stability rules
+- `adam-mcp upgrade` CLI subcommand
+- `/mcp-upgrade` slash command
+- `--self-check` extended for CHANGELOG ↔ rule_id cross-links
+
+### Pending (Spec 2 — incremental authoring)
+- `adam-mcp tool add <name> --category <cat>`
+- `adam-mcp workflow add <name>`
+- `/mcp-tool` slash command
+
+### Pending (Spec 3 — Zig pack)
+- Zig library + templates (corpus already indexed in corpus-retrieval)
 
 ## Later
 - TS / Kotlin / Rust language packs
