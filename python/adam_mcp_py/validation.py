@@ -17,9 +17,11 @@ def validates(model: type[M]) -> Callable:
     """
     def decorator(fn: Callable[[M], Result]) -> Callable[[dict], Result]:
         @wraps(fn)
-        def wrapper(input_dict: dict) -> Result:
+        def wrapper(input) -> Result:
+            if isinstance(input, model):
+                return fn(input)
             try:
-                parsed = model(**input_dict)
+                parsed = model(**input)
             except ValidationError as e:
                 diagnostics = [
                     f"{'.'.join(str(x) for x in err['loc'])}: {err['msg']}"

@@ -66,6 +66,12 @@ When the server has multiple backends, the result tells the agent which one was 
 
 → Library: `adam_mcp_py.BackendProtocol.mode_tag`
 
+### §1.5 Validates parameter naming convention
+
+Every `@validates(Model)`-decorated tool function must name its first parameter **`input`** (e.g. `def my_tool(input: MyInput) -> Result[...]`). The `validates` wrapper accepts `input` as its kwarg, matching the JSONSchema field name FastMCP generates from the original signature via `@wraps`. Using any other name (`data`, `args`, `req`, etc.) publishes a mismatched schema field, and every runtime call FAILs with `unexpected keyword argument 'input'`. The `§1.5` audit rule enforces this; the `--self-check` extends it to the wrapper in `validation.py` itself.
+
+→ Library: `adam_mcp_py.validates`
+
 ---
 
 ## §2 Architecture

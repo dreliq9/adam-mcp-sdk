@@ -4,6 +4,7 @@ Each rule returns a list of findings. Findings have severity OK/WARN/FAIL and a 
 pointing back to the spec section that was violated.
 """
 from __future__ import annotations
+import ast
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -110,6 +111,51 @@ def _check_passthrough_exists(project_root: Path) -> list[Finding]:
     return []
 
 
+def _check_validates_param_name(project_root: Path) -> list[Finding]:
+    """§1.5: every @validates-decorated tool must name its first parameter `input`.
+
+    The `validates` wrapper accepts `input` as its kwarg (matching the JSONSchema
+    field name FastMCP generates from the original signature). If the decorated
+    function uses a different first-param name, FastMCP introspects *that* name,
+    publishes a schema field with the wrong name, and runtime calls FAIL with
+    'unexpected keyword argument'.
+    """
+    findings: list[Finding] = []
+    for py in project_root.rglob("*.py"):
+        # Skip vendored / virtualenv code
+        parts = set(py.parts)
+        if {".venv", "site-packages", "node_modules", "build", "dist"} & parts:
+            continue
+        try:
+            tree = ast.parse(py.read_text())
+        except (SyntaxError, UnicodeDecodeError, OSError):
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            for dec in node.decorator_list:
+                target = dec.func if isinstance(dec, ast.Call) else dec
+                name = target.attr if isinstance(target, ast.Attribute) else getattr(target, "id", None)
+                if name != "validates":
+                    continue
+                args = node.args.args
+                first = args[0].arg if args else None
+                if first != "input":
+                    findings.append(Finding(
+                        rule="§1.5",
+                        severity="FAIL",
+                        message=(
+                            f"{py}:{node.lineno} {node.name}() decorated with @validates "
+                            f"but first parameter is {first!r}, not 'input'. "
+                            f"FastMCP will publish a schema field named {first!r} "
+                            f"while the validates wrapper expects 'input' — every call FAILs."
+                        ),
+                        hint="Rename the first parameter to `input`. See HOUSE_STYLE.md §1.5.",
+                    ))
+                break
+    return findings
+
+
 def _check_tool_files_naming(project_root: Path) -> list[Finding]:
     """§2.7: tools live in <package>/mcp/<area>_tools.py. Warn if a server.py has many tools."""
     findings: list[Finding] = []
@@ -142,6 +188,9 @@ REGISTRY: list[AuditRule] = [
     AuditRule("§3.17", "HOUSE_STYLE.md §3.17", "FAIL",
               "README/CHANGELOG/ROADMAP/DECISIONS/server.json present",
               _check_required_files),  # same checker covers it
+    AuditRule("§1.5", "HOUSE_STYLE.md §1.5", "FAIL",
+              "@validates-decorated tools name first parameter `input`",
+              _check_validates_param_name),
     AuditRule("§2.7", "HOUSE_STYLE.md §2.7", "WARN",
               "Tool files split by area (no over-stuffed server.py)",
               _check_tool_files_naming),

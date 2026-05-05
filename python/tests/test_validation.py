@@ -36,3 +36,31 @@ def test_validates_rejects_out_of_range():
     r = greet({"name": "Adam", "formality": 99})
     assert r.status == Status.FAIL
     assert r.hint is not None
+
+
+def test_validates_accepts_input_kwarg():
+    """FastMCP dispatches with `input=...` as kwarg — must work. Regression for §1.5."""
+    @validates(GreetInput)
+    def greet(input: GreetInput) -> Result[str]:
+        return Result.ok(value=input.name)
+
+    r = greet(input={"name": "Adam", "formality": 5})
+    assert r.status == Status.OK
+    assert r.value == "Adam"
+
+
+def test_validates_accepts_pre_parsed_model_instance():
+    """FastMCP validates from JSONSchema before dispatch and may pass the parsed model.
+    Wrapper must short-circuit, not double-validate. Regression for §1.5."""
+    @validates(GreetInput)
+    def greet(input: GreetInput) -> Result[str]:
+        return Result.ok(value=input.name)
+
+    parsed = GreetInput(name="Adam", formality=5)
+    r = greet(parsed)
+    assert r.status == Status.OK
+    assert r.value == "Adam"
+
+    r2 = greet(input=parsed)
+    assert r2.status == Status.OK
+    assert r2.value == "Adam"

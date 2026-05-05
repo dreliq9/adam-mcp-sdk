@@ -133,6 +133,34 @@ def _self_check_v2() -> dict:
                                          "message": f"CHANGELOG ### Breaking cites {cited} but it's not in REGISTRY",
                                          "hint": "Add the rule to audit_rules.py REGISTRY, or fix the CHANGELOG citation."})
 
+    # === Check 4: validates() wrapper accepts `input` as its parameter name ===
+    # Guards the contract every @validates-decorated tool depends on. If this drifts,
+    # every MCP using the SDK breaks at runtime with 'unexpected keyword argument'.
+    import ast
+    validation_path = repo / "python" / "adam_mcp_py" / "validation.py"
+    if validation_path.exists():
+        try:
+            tree = ast.parse(validation_path.read_text())
+            wrapper_param = None
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) and node.name == "wrapper":
+                    args = node.args.args
+                    wrapper_param = args[0].arg if args else None
+                    break
+            if wrapper_param != "input":
+                findings.append({
+                    "rule": "§1.5", "severity": "FAIL",
+                    "message": (
+                        f"validation.py wrapper first param is {wrapper_param!r}, must be 'input' — "
+                        f"will break every @validates-decorated tool at runtime."
+                    ),
+                    "hint": "Rename the wrapper parameter (and its uses) back to `input`.",
+                })
+        except (SyntaxError, OSError) as e:
+            findings.append({"rule": "§1.5", "severity": "FAIL",
+                             "message": f"Cannot parse validation.py: {e}",
+                             "hint": "Restore validation.py from git."})
+
     fails = sum(1 for f in findings if f["severity"] == "FAIL")
     return {
         "status": "FAIL" if fails else "OK",
