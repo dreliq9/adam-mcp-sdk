@@ -105,3 +105,35 @@ Architectural and process decisions for the SDK. Each entry: date, decision, rat
 **Decision:** Git is the rollback story. `adam-mcp upgrade` does not maintain a "previous state" snapshot.
 
 **Rationale:** Out of scope for current design. Revisit in v0.3 if painful in practice.
+
+## 2026-05-19 — OPEN: `Result.raw` typing strategy
+
+**Status:** OPEN — needs author decision before v1.0 commitment.
+
+**Context:** `Result.raw` is currently typed `Any` (Python) / equivalent in Zig. This is the spec's own escape-hatch-escape-hatch — it directly contradicts the strict-typing rule that holds everywhere else in the codebase. Pragmatic because the backing API's response shape may not be known at tool-author time, but it reads like an oversight rather than an intentional carveout.
+
+**Options under consideration:**
+
+1. **Keep `Any`, name the exception.** Add a paragraph to §1.1 explicitly stating that `Result.raw` is the documented exception to strict typing because it represents an unknown-shaped foreign payload. No code change; just promote the implicit decision to an explicit one.
+2. **Parameterize as `Raw[T]`.** Make `Result.raw` typed by the backend's response schema (e.g. `Raw[TestRailCaseDict]`, `Raw[JsonValue]`). Stricter but pushes per-backend type definitions onto every MCP author. May ease consumer code that branches on `raw`.
+3. **Split into `raw_json: JsonValue` + `raw_typed: T | None`.** Belt-and-suspenders — agents that want the unstructured form get JSON, authors who can type-narrow expose `raw_typed`.
+
+**Tradeoffs:** Option 1 is zero code change but doesn't actually improve type safety. Option 2 raises the per-MCP burden but matches the rest of the SDK's discipline. Option 3 is the most flexible but the envelope grows another field, intersecting with the envelope-versioning open question below.
+
+**Resolution:** Pending. Likely revisit alongside envelope versioning before v1.0.
+
+## 2026-05-19 — OPEN: Envelope versioning strategy
+
+**Status:** OPEN — needs author decision before v1.0 commitment.
+
+**Context:** `Result` field order is currently frozen (`status → value → raw → metrics → diagnostics → hint → mode_tag`) per `tools/byte_equivalence_check.sh`. Cross-language byte-equivalence depends on it. There is no explicit forward-compatibility story for the case when the envelope needs an 8th field — and the async/streaming roadmap item makes this concrete: progress payloads, partial results, citations, and trace IDs are all plausible future additions.
+
+**Options under consideration:**
+
+1. **Reserve `envelope_version: int` field now.** Adds an 8th field at envelope creation time, before any tagged release commits us to the current shape. Consumers that don't care ignore it; future code can branch on version. Costs: 1 field of bloat in every Result forever.
+2. **Commit to "additions go in `metrics` / `diagnostics`, never new top-level fields."** Locks the envelope at 7 fields forever. New axes squeeze into existing dicts/lists. Costs: ergonomic loss as `metrics` and `diagnostics` accumulate structured payloads that should be top-level.
+3. **Plan a `Result_v2` shape and bump byte-equivalence to versioned checksums.** Defer the choice; commit to handling it the day it's needed via a major-version migration.
+
+**Tradeoffs:** Option 1 is cheap insurance that future-you will be glad to have. Option 2 is principled but bets that no axis will ever justify a new top-level field — a strong claim. Option 3 punts the decision.
+
+**Resolution:** Pending. The byte-equivalence contract makes this load-bearing; whichever path is chosen needs to land before v1.0 and probably alongside the `Result.raw` typing decision above.
