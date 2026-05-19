@@ -70,6 +70,8 @@ When the server has multiple backends, the result tells the agent which one was 
 
 Every `@validates(Model)`-decorated tool function must name its first parameter **`input`** (e.g. `def my_tool(input: MyInput) -> Result[...]`). The `validates` wrapper accepts `input` as its kwarg, matching the JSONSchema field name FastMCP generates from the original signature via `@wraps`. Using any other name (`data`, `args`, `req`, etc.) publishes a mismatched schema field, and every runtime call FAILs with `unexpected keyword argument 'input'`. The `§1.5` audit rule enforces this; the `--self-check` extends it to the wrapper in `validation.py` itself.
 
+**Framework dependency:** §1.5 exists because of FastMCP's `@wraps`-driven schema generation. It is a framework-integration rule that sits in §1 for proximity to its enforcement mechanism, not because it's a property of the Result contract. If the underlying MCP framework changes its schema-generation behavior, the canonical mitigation is to deprecate §1.5 (keeping the `rule_id` reserved per §3.18) and add a replacement rule in Appendix A. See Appendix A — Framework integration notes.
+
 → Library: `adam_mcp_py.validates`
 
 ---
@@ -254,3 +256,18 @@ Restates §1.3 default severity. Hard-block (FAIL) only when consequence is dest
 
 ### §6.33 CLAUDE.md has "when to drop down" guidance
 (Restates §3.15 required section.)
+
+---
+
+## Appendix A — Framework integration notes
+
+Rules in this appendix encode constraints that come from the underlying MCP framework (currently FastMCP for Python; equivalents in other language packs), not from the agent-tool contract itself. They are listed here so that:
+
+- The §1–§6 core stays portable across frameworks and protocol versions.
+- When a framework's behavior changes, the affected rule can be deprecated (its `rule_id` reserved per §3.18) and a replacement added here without disturbing the core contract.
+
+Currently routed into this appendix:
+
+- **§1.5** — `validates` parameter naming. Lives in §1 for proximity to enforcement, but conceptually belongs here. If FastMCP changes its `@wraps`-driven schema generation, §1.5 will be deprecated and a replacement rule (`§A.N`) added here.
+
+This appendix is intentionally short. New rules land here only when they encode a framework-specific behavior that the §1–§6 contract does not require.
