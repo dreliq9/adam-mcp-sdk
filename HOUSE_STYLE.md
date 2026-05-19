@@ -16,6 +16,8 @@ Every other rule in this document descends from this one.
 
 **You will be tempted to write one tool per API endpoint. Don't.** That's the shallow-wrapper default. The unit of work is what an AI does, not what an API exposes.
 
+**Auditability ceiling.** Principle Zero is the SDK's most important rule and its least mechanically auditable — "is this tool AI-shaped?" is a judgment, not a regex. The canonical check is human review at LLM_GUIDE time: when you write the LLM_GUIDE per §3.14, the act of describing the tool's purpose and parameter gotchas exposes API-shapedness. An optional heuristic (`tool_count / underlying_api_endpoint_count > 0.7` → warn) can be added to the audit, but it is advisory, not authoritative.
+
 ## Principle One — Escape hatches always available
 
 Tools shaped for AI consumption are the happy path. They are not a cage.
