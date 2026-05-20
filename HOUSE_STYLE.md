@@ -119,9 +119,11 @@ Side effects go to `~/<domain>-output/`. Use `output_dir(name)` from the library
 Every MCP project's `pyproject.toml` pins exact versions for runtime deps. Compatible-release (`~=` / `^`) allowed for:
 
 - `adam-mcp-py` itself.
-- A small whitelist of **boring stable deps** maintained alongside this spec: `pydantic`, `httpx`, `pytest`, `ruff`. These are heavily-tested, semver-respecting libraries whose patch/minor bumps almost never break consumers. Bumping any of them across the MCP fleet should be a passive activity, not a coordinated fan-out.
+- A small whitelist of **boring stable runtime deps** maintained alongside this spec: `pydantic`, `httpx`. These are heavily-tested, semver-respecting libraries whose patch/minor bumps almost never break consumers. Bumping them across the MCP fleet should be a passive activity, not a coordinated fan-out.
 
 Anything outside this list pins exact. The whitelist is intentionally small; additions require a DECISIONS.md entry justifying that the dep meets the "boring stable" bar.
+
+**Dev deps are out of scope.** §2.11 governs runtime deps only. Dev-only tooling (`pytest`, `ruff`, etc.) lives under `[dependency-groups]` / `[tool.uv.dev-dependencies]` and is not subject to this rule.
 
 ### §2.12 Underlying clients publicly importable
 
