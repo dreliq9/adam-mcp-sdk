@@ -1,6 +1,6 @@
 [project]
 name = "adam-mcp-py"
-version = "0.3.0"
+version = "0.3.1"
 description = "Python primitives for the Adam MCP house style"
 requires-python = ">=3.11"
 dependencies = [

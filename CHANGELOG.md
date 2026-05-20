@@ -4,6 +4,15 @@ All notable changes to adam-mcp-sdk.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project uses SemVer for the library and CalVer for the spec.
 
+## [0.3.1] — 2026-05-20
+
+### Added
+- **Windows is now a documented first-class platform.** No code changes — the codebase was already cross-platform (`pathlib`, `Path.home()`, no POSIX syscalls). This release codifies that: README has a "Platform support" matrix, Install instructions cover both shells, and the audit + test suites are verified to pass via the same `uv run` invocations on Windows. Sibling SDK `adam-mcp-zig` 0.2.0 ships the same parity on the Zig side.
+
+### Notes
+- The MCP protocol (stdio JSON-RPC) is handled by FastMCP, which sets binary mode on stdio when needed; no Windows-specific newline handling is required at the SDK layer.
+- `Path.home()` on Windows reads `USERPROFILE` (or `HOME` if explicitly set). The `test_output_dir_*` tests monkeypatch `HOME`, which `Path.home()` honors first on every platform.
+
 ## [0.3.0] — 2026-05-20
 
 ### Breaking
