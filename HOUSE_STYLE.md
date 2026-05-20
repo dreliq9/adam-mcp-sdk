@@ -133,15 +133,9 @@ The lib layer must expose its dependencies. `from my_mcp.backends import client`
 
 ### §3.13 SPEC.md is law
 
-Versioned. Written before tools.
+Versioned. Written before tools. No silent scope creep.
 
-The spec is the contract — but mid-build discoveries do happen. When a real necessity surfaces that the spec doesn't cover:
-
-1. Add a `DECISIONS.md` entry capturing the discovery, the necessity, and the chosen direction. This is the audit trail.
-2. Update SPEC.md to incorporate the addition. The spec now describes the new state.
-3. Then build.
-
-What's forbidden is *silent* scope creep — adding features that aren't in the spec without leaving a record. The rule isn't "never add what isn't listed"; it's "never quietly violate the spec." If the rule felt like "violate when needed" in practice, that meant the spec lacked a documented path for honest scope expansion. Now it has one.
+Mid-build discoveries are allowed — but require a `DECISIONS.md` entry + SPEC.md update *before* the code lands. The rule is "never quietly violate the spec," not "never deviate from the original." If the rule ever feels like "violate when needed," the spec is missing a documented path for honest scope expansion — add one.
 
 ### §3.14 LLM_GUIDE.md
 
