@@ -4,6 +4,22 @@ All notable changes to adam-mcp-sdk.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project uses SemVer for the library and CalVer for the spec.
 
+## [0.3.0] — 2026-05-20
+
+### Breaking
+- **§1.1** — `Result` envelope shape changed. `envelope_version: int` added as the **first** field, before `status`. Canonical order is now `(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)`. Field order is contractual — cross-language byte-equivalence depends on it. Future top-level fields require an `envelope_version` bump and another `### Breaking` entry. Migration: existing keyword-only callers (`Result.ok(...)`, `Result.warn(...)`, `Result.fail(...)`) are unaffected — `envelope_version` defaults to `1`. Positional `Result(Status.OK, ...)` construction is now a `TypeError` (kw_only). Replace any positional construction with `Result.ok/.warn/.fail(...)`.
+
+### Added
+- `adam_mcp_py.Raw`: `TypeAlias = Any`. Self-documenting alias for `Result.raw`. Lets an MCP narrow to a project-specific type without changing the contract. Documented in §1.1 as the strict-typing exception.
+- `adam_mcp_py.ENVELOPE_VERSION`: integer constant for parsers verifying wire-format compatibility.
+- §1.1 "Envelope is a wire format" note: codifies that `Result` is a serialization format whenever byte-equivalence is in play.
+
+### Changed
+- `@dataclass(kw_only=True)` on `Result` enforces that the envelope's canonical field order is a wire-format contract, not an argument-passing convention. See `tests/test_result.py::test_result_construction_is_keyword_only`.
+
+### Convention going forward
+Adding a new top-level field to `Result` is a Breaking change. The path is: bump `ENVELOPE_VERSION`, add a `### Breaking` entry citing `**§1.1**`, update the canonical-order test in `test_result.py`, refresh any byte-equivalence golden checksums.
+
 ## [0.2.1] — 2026-05-04
 
 ### Fixed

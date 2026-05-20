@@ -156,6 +156,39 @@ def _check_validates_param_name(project_root: Path) -> list[Finding]:
     return findings
 
 
+def _check_result_keyword_only(project_root: Path) -> list[Finding]:
+    """§1.1: Result envelope is kw_only. Positional `Result(...)` construction
+    is invalid post-0.3.0 because envelope_version became the first field.
+
+    Catches the 0.3.0 migration: any direct Result(x, y) call with positional
+    args is a FAIL. Factory methods (Result.ok/.warn/.fail) and pure-keyword
+    direct calls are fine.
+    """
+    findings: list[Finding] = []
+    if _is_advisory(project_root):
+        return findings
+    for py in project_root.rglob("*.py"):
+        if "/.venv/" in str(py) or "/build/" in str(py) or "/dist/" in str(py):
+            continue
+        try:
+            tree = ast.parse(py.read_text(), filename=str(py))
+        except SyntaxError:
+            continue
+        for node in ast.walk(tree):
+            if not isinstance(node, ast.Call):
+                continue
+            func = node.func
+            # Match `Result(...)` direct construction, not `Result.ok(...)` etc.
+            if isinstance(func, ast.Name) and func.id == "Result" and node.args:
+                findings.append(Finding(
+                    rule="§1.1",
+                    severity="FAIL",
+                    message=f"{py}:{node.lineno} — positional Result(...) construction is invalid (envelope is kw_only post-0.3.0)",
+                    hint="Use Result.ok/.warn/.fail factory methods, or pass all args as keywords. See HOUSE_STYLE.md §1.1.",
+                ))
+    return findings
+
+
 def _check_tool_files_naming(project_root: Path) -> list[Finding]:
     """§2.7: tools live in <package>/mcp/<area>_tools.py. Warn if a server.py has many tools."""
     findings: list[Finding] = []
@@ -173,6 +206,9 @@ def _check_tool_files_naming(project_root: Path) -> list[Finding]:
 
 
 REGISTRY: list[AuditRule] = [
+    AuditRule("§1.1", "HOUSE_STYLE.md §1.1", "FAIL",
+              "Result envelope construction is keyword-only (catches 0.3.0 migration)",
+              _check_result_keyword_only),
     AuditRule("§3.13", "HOUSE_STYLE.md §3.13", "FAIL",
               "SPEC.md present + has required sections",
               _check_spec_md_sections),
