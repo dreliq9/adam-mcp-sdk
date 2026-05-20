@@ -105,3 +105,60 @@ Architectural and process decisions for the SDK. Each entry: date, decision, rat
 **Decision:** Git is the rollback story. `adam-mcp upgrade` does not maintain a "previous state" snapshot.
 
 **Rationale:** Out of scope for current design. Revisit in v0.3 if painful in practice.
+
+## 2026-05-19 — CLOSED: `Result.raw` typing strategy
+
+**Status:** CLOSED 2026-05-20 — Option 1 with opt-in narrowing via `Raw` type alias.
+
+**Context:** `Result.raw` is typed `Any` (Python) / equivalent in Zig. This is the spec's own escape-hatch-escape-hatch — it directly contradicts the strict-typing rule that holds everywhere else in the codebase. Pragmatic because the backing API's response shape may not be known at tool-author time, but it reads like an oversight rather than an intentional carveout.
+
+**Options considered:**
+
+1. **Keep `Any`, name the exception.** Add a paragraph to §1.1 explicitly stating that `Result.raw` is the documented exception to strict typing because it represents an unknown-shaped foreign payload. No code change; just promote the implicit decision to an explicit one.
+2. **Parameterize as `Raw[T]`.** Make `Result.raw` typed by the backend's response schema. Stricter but pushes per-backend type definitions onto every MCP author.
+3. **Split into `raw_json: JsonValue` + `raw_typed: T | None`.** Belt-and-suspenders. Grows the envelope.
+
+**Decision:** Option 1, with a forward-compat tweak. `Result.raw` stays `Any` in the canonical contract — this is the documented exception to strict typing, because `raw` exists *to* carry unknown-shape payloads from foreign APIs. Trying to type the untyped fights the design's purpose.
+
+To allow MCPs that *can* type their backend's response to opt in without breaking the envelope, `adam_mcp_py` exports a public type alias `Raw = Any`. An MCP can annotate locally (e.g. `raw: Raw` becomes equivalent to `raw: Any`, but in v0.3+ may be parameterized as `Raw[T]` once a project narrows it). This is purely an annotation convenience; no envelope change, no audit-rule change, no byte-equivalence impact.
+
+**Tradeoffs accepted:**
+- Doesn't improve type safety at the contract level (intentional — `raw` is by definition unstructured).
+- Doesn't force per-MCP discipline (intentional — would raise authoring burden for marginal gain).
+
+**Tradeoffs rejected:**
+- Option 2 raises per-MCP burden; in practice most authors would write `Raw[Any]` and gain nothing.
+- Option 3 grows the envelope to 8 fields, which collides with the byte-equivalence contract and intersects with the envelope-versioning decision below.
+
+**Spec impact:** §1.1 to be updated with one sentence naming `raw` as the documented exception to §1.x strict typing. `adam_mcp_py.Raw` to be added as a public re-export. No `rule_id` changes.
+
+## 2026-05-19 — CLOSED: Envelope versioning strategy
+
+**Status:** CLOSED 2026-05-20 — Option 1, reserve `envelope_version: int = 1` as the **first** field.
+
+**Context:** `Result` field order is frozen (`status → value → raw → metrics → diagnostics → hint → mode_tag`) per `tools/byte_equivalence_check.sh`. Cross-language byte-equivalence depends on it. There is no explicit forward-compatibility story for the case when the envelope needs an 8th field — and the async/streaming roadmap item makes this concrete: progress payloads, partial results, citations, and trace IDs are all plausible future additions.
+
+**Options considered:**
+
+1. **Reserve `envelope_version: int` field now.** Adds the version field at envelope creation time, before any tagged release commits us to the current shape. Consumers that don't care ignore it; future code can branch on version.
+2. **Commit to "additions go in `metrics` / `diagnostics`, never new top-level fields."** Locks the envelope at 7 fields forever. New axes squeeze into existing dicts/lists.
+3. **Plan a `Result_v2` shape and bump byte-equivalence to versioned checksums.** Defer the choice; commit to handling it the day it's needed via a major-version migration.
+
+**Decision:** Option 1, reserved as the **first** field of the envelope (before `status`). The new canonical order is `envelope_version → status → value → raw → metrics → diagnostics → hint → mode_tag`, initial value `envelope_version = 1`.
+
+**Reasoning:**
+
+- **Byte-equivalence makes `Result` a wire format.** Once cross-language byte-equivalence is contractual (Zig/TS/Rust packs upcoming), `Result` is no longer an in-process Python dataclass — it is a serialization format. Every wire format has a version field (PNG magic, ELF header, MCP protocol version, HTTP version). The need does not go away by refusing to add it; refusal only delays the addition to a more expensive moment.
+- **Option 2 collides with the async/streaming roadmap entry.** Progress payloads, partial results, and trace IDs are not metrics and not diagnostics. Squeezing them into either dict bloats those fields' semantics and undermines their existing purpose. Trading one principled cost (an extra field) for a worse semantic mess later is the wrong direction.
+- **Option 3 causes the v2 break it claims to manage.** Without a version field, shipping `Result_v2` requires every MCP to migrate *and* the byte-equiv tooling to support versioned checksums after the fact. With a version field already in place, `v2` is a bump from `envelope_version=1` to `envelope_version=2` — strictly cheaper migration.
+- **First-position placement** lets a parser short-circuit on version mismatch before attempting to read the rest. Standard wire-format convention.
+
+**Cost accepted:** one field of structural metadata in every Result forever. This is the cheapest insurance the design will ever buy.
+
+**Spec impact (separate commit):**
+- §1.1 Result type table: add `envelope_version: int` as the first row.
+- `tools/byte_equivalence_check.sh`: update canonical field order; refresh golden checksum.
+- `adam_mcp_py.Result` constructor: add `envelope_version` field with default `1`.
+- Library docstring update naming §1.1.
+- CHANGELOG `### Breaking` entry for the field order change (still pre-v1.0, but worth noting).
+- No `rule_id` changes per §3.18.
