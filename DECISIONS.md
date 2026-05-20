@@ -106,21 +106,31 @@ Architectural and process decisions for the SDK. Each entry: date, decision, rat
 
 **Rationale:** Out of scope for current design. Revisit in v0.3 if painful in practice.
 
-## 2026-05-19 — OPEN: `Result.raw` typing strategy
+## 2026-05-19 — CLOSED: `Result.raw` typing strategy
 
-**Status:** OPEN — needs author decision before v1.0 commitment.
+**Status:** CLOSED 2026-05-20 — Option 1 with opt-in narrowing via `Raw` type alias.
 
-**Context:** `Result.raw` is currently typed `Any` (Python) / equivalent in Zig. This is the spec's own escape-hatch-escape-hatch — it directly contradicts the strict-typing rule that holds everywhere else in the codebase. Pragmatic because the backing API's response shape may not be known at tool-author time, but it reads like an oversight rather than an intentional carveout.
+**Context:** `Result.raw` is typed `Any` (Python) / equivalent in Zig. This is the spec's own escape-hatch-escape-hatch — it directly contradicts the strict-typing rule that holds everywhere else in the codebase. Pragmatic because the backing API's response shape may not be known at tool-author time, but it reads like an oversight rather than an intentional carveout.
 
-**Options under consideration:**
+**Options considered:**
 
 1. **Keep `Any`, name the exception.** Add a paragraph to §1.1 explicitly stating that `Result.raw` is the documented exception to strict typing because it represents an unknown-shaped foreign payload. No code change; just promote the implicit decision to an explicit one.
-2. **Parameterize as `Raw[T]`.** Make `Result.raw` typed by the backend's response schema (e.g. `Raw[TestRailCaseDict]`, `Raw[JsonValue]`). Stricter but pushes per-backend type definitions onto every MCP author. May ease consumer code that branches on `raw`.
-3. **Split into `raw_json: JsonValue` + `raw_typed: T | None`.** Belt-and-suspenders — agents that want the unstructured form get JSON, authors who can type-narrow expose `raw_typed`.
+2. **Parameterize as `Raw[T]`.** Make `Result.raw` typed by the backend's response schema. Stricter but pushes per-backend type definitions onto every MCP author.
+3. **Split into `raw_json: JsonValue` + `raw_typed: T | None`.** Belt-and-suspenders. Grows the envelope.
 
-**Tradeoffs:** Option 1 is zero code change but doesn't actually improve type safety. Option 2 raises the per-MCP burden but matches the rest of the SDK's discipline. Option 3 is the most flexible but the envelope grows another field, intersecting with the envelope-versioning open question below.
+**Decision:** Option 1, with a forward-compat tweak. `Result.raw` stays `Any` in the canonical contract — this is the documented exception to strict typing, because `raw` exists *to* carry unknown-shape payloads from foreign APIs. Trying to type the untyped fights the design's purpose.
 
-**Resolution:** Pending. Likely revisit alongside envelope versioning before v1.0.
+To allow MCPs that *can* type their backend's response to opt in without breaking the envelope, `adam_mcp_py` exports a public type alias `Raw = Any`. An MCP can annotate locally (e.g. `raw: Raw` becomes equivalent to `raw: Any`, but in v0.3+ may be parameterized as `Raw[T]` once a project narrows it). This is purely an annotation convenience; no envelope change, no audit-rule change, no byte-equivalence impact.
+
+**Tradeoffs accepted:**
+- Doesn't improve type safety at the contract level (intentional — `raw` is by definition unstructured).
+- Doesn't force per-MCP discipline (intentional — would raise authoring burden for marginal gain).
+
+**Tradeoffs rejected:**
+- Option 2 raises per-MCP burden; in practice most authors would write `Raw[Any]` and gain nothing.
+- Option 3 grows the envelope to 8 fields, which collides with the byte-equivalence contract and intersects with the envelope-versioning decision below.
+
+**Spec impact:** §1.1 to be updated with one sentence naming `raw` as the documented exception to §1.x strict typing. `adam_mcp_py.Raw` to be added as a public re-export. No `rule_id` changes.
 
 ## 2026-05-19 — OPEN: Envelope versioning strategy
 
