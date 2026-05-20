@@ -32,13 +32,14 @@ Canonical example: `caid-mcp`'s `run_cadquery_script`. Full validated tool surfa
 
 ### §1.1 Result type
 
-Every tool returns a typed `Result(status, value, raw, metrics, diagnostics, hint, mode_tag)`. Never raw output. Never raw exceptions.
+Every tool returns a typed `Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)`. Never raw output. Never raw exceptions.
 
 | Field | Type | Purpose |
 |-------|------|---------|
+| `envelope_version` | `int` (default `1`) | Wire-format version. First field so parsers can short-circuit on mismatch. See [DECISIONS 2026-05-19](DECISIONS.md). |
 | `status` | `OK` / `WARN` / `FAIL` | Outcome category |
 | `value` | `T \| None` | Synthesized/typed output for AI consumption |
-| `raw` | `Any \| None` | Underlying API response when applicable (Principle One support) |
+| `raw` | `Raw \| None` | Underlying API response when applicable (Principle One support). **Typed `Any` by contract** — `raw` is the documented exception to strict typing, because it carries unknown-shape payloads from foreign APIs. Use the `adam_mcp_py.Raw` alias for self-documenting annotations; narrow to a project-specific type in your own MCP if the backend's response is fully known. |
 | `metrics` | `dict[str, Any]` | Numeric/scalar measurements (`elapsed_ms`, `bytes_read`, etc.) |
 | `diagnostics` | `list[str]` | What happened, in human terms |
 | `hint` | `str \| None` | What to try next on FAIL/WARN |
@@ -46,7 +47,9 @@ Every tool returns a typed `Result(status, value, raw, metrics, diagnostics, hin
 
 **If you can't write a useful `hint` on FAIL, the tool's shape is wrong.**
 
-→ Library: `adam_mcp_py.Result`
+**Envelope is a wire format.** Cross-language byte-equivalence makes `Result` a serialization format, not just an in-process Python dataclass. Field order is contractual. New top-level fields require an `envelope_version` bump and a CHANGELOG `### Breaking` entry.
+
+→ Library: `adam_mcp_py.Result`, `adam_mcp_py.Raw`
 
 ### §1.2 Validation layer
 

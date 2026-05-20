@@ -25,7 +25,7 @@ Canonical example: `caid-mcp`'s `run_cadquery_script`.
 
 ### §1.1 Result type
 
-Every tool returns a typed `Result(status, value, raw, metrics, diagnostics, hint, mode_tag)`. Never raw output, never raw exceptions.
+Every tool returns a typed `Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)`. Never raw output, never raw exceptions.
 
 **If you can't write a useful `hint` on FAIL, the tool's shape is wrong.**
 

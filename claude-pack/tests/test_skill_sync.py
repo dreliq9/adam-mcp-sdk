@@ -49,8 +49,8 @@ def test_skill_mirrors_section_1_1_result_type():
     spec_text = SPEC.read_text()
     skill_text = SKILL.read_text()
     # Both must say "every tool returns a typed Result"
-    assert "Result(status, value, raw, metrics, diagnostics, hint, mode_tag)" in spec_text
-    assert "Result(status, value, raw, metrics, diagnostics, hint, mode_tag)" in skill_text
+    assert "Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)" in spec_text
+    assert "Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)" in skill_text
 
 
 def test_skill_has_six_question_checklist():
