@@ -1,5 +1,5 @@
 """Tests for adam_mcp_py.Result — implements §1.1, §6.29."""
-from adam_mcp_py import Result, Status
+from adam_mcp_py import ENVELOPE_VERSION, Raw, Result, Status
 
 
 def test_result_ok_basic():
@@ -59,3 +59,40 @@ def test_result_fail_without_hint_raises():
     import pytest
     with pytest.raises(ValueError, match="hint is required"):
         Result.fail(hint=None)
+
+
+def test_envelope_version_defaults_to_1():
+    assert ENVELOPE_VERSION == 1
+    r = Result.ok(value="x")
+    assert r.envelope_version == 1
+
+
+def test_to_dict_envelope_version_is_first_key():
+    """§1.1: envelope_version is the canonical first field of the wire format."""
+    r = Result.ok(value=1)
+    keys = list(r.to_dict().keys())
+    assert keys[0] == "envelope_version"
+    # Full canonical order, byte-equivalence depends on this:
+    assert keys == [
+        "envelope_version",
+        "status",
+        "value",
+        "raw",
+        "metrics",
+        "diagnostics",
+        "hint",
+        "mode_tag",
+    ]
+
+
+def test_raw_is_alias_for_any():
+    """Raw is the self-documenting alias for the §1.1 Any exception on raw."""
+    from typing import Any
+    assert Raw is Any
+
+
+def test_result_construction_is_keyword_only():
+    """kw_only=True keeps the envelope field order a contract, not an arg convention."""
+    import pytest
+    with pytest.raises(TypeError):
+        Result(Status.OK)  # positional construction is disallowed

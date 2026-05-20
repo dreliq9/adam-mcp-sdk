@@ -2,7 +2,7 @@
 
 Public API. See HOUSE_STYLE.md for the rules each symbol implements.
 """
-from .result import Result, Status
+from .result import ENVELOPE_VERSION, Raw, Result, Status
 from .validation import validates
 from .guardrails import requires
 from .backend import BackendProtocol, detect_backend
@@ -12,6 +12,8 @@ from .escape import passthrough, is_passthrough
 from .base_server import BaseServer
 
 __all__ = [
+    "ENVELOPE_VERSION",
+    "Raw",
     "Result",
     "Status",
     "validates",
@@ -24,4 +26,4 @@ __all__ = [
     "is_passthrough",
     "BaseServer",
 ]
-__version__ = "0.2.0"
+__version__ = "0.3.0"
