@@ -1,0 +1,65 @@
+name: Bug report
+description: Something behaves differently than documented.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Before filing, please:
+        - Run the relevant test suite locally and confirm it passes (if it doesn't, that *is* the bug — say so).
+        - Check the [ROADMAP](../blob/main/ROADMAP.md) and [DECISIONS](../blob/main/DECISIONS.md) — your issue may already be tracked.
+        - Skim recent commits / issues to avoid duplicates.
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      description: Output of `python --version`.
+      placeholder: "3.12.1"
+    validations:
+      required: true
+
+  - type: input
+    id: sdk-version
+    attributes:
+      label: adam-mcp-py / adam-mcp-cli version
+      description: Output of `uv run python -c "import adam_mcp_py; print(adam_mcp_py.__version__)"` and/or `adam-mcp --help` first line.
+      placeholder: "0.3.1"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Linux (x86_64)
+        - Linux (aarch64)
+        - Windows (x86_64)
+        - other (describe in body)
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what did you get?
+      placeholder: |
+        Steps:
+        1. ...
+        2. ...
+
+        Expected: ...
+        Actual: ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Test / runtime output
+      description: Paste the relevant stderr/stdout. Triple-backticks please.
+      render: shell

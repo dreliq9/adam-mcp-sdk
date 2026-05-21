@@ -1,0 +1,54 @@
+name: Feature request
+description: Propose a new SDK capability, audit rule, or spec change.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing, please confirm:
+        - The proposal doesn't break Principle Zero ("AI-shaped, not API-shaped") or Principle One ("Escape hatches always available"). See [HOUSE_STYLE.md](../blob/main/HOUSE_STYLE.md).
+        - If it's already in [ROADMAP.md](../blob/main/ROADMAP.md), reference the section.
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: What problem does this solve?
+      description: Concrete agent-task or MCP-author pain point. "I want feature X" without a use case is hard to evaluate.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API or behavior
+      description: Sketch the signature, the call site, or the wire shape. Don't worry about getting it perfect — direction is what matters.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Why not just use an existing primitive, drop down via the escape hatch, or write a workflow?
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Which deliverable would this touch?
+      options:
+        - python/ library (adam-mcp-py)
+        - cli/ (adam-mcp)
+        - claude-pack/ (skill / slash commands)
+        - reference-mcp/adam-greet (the worked example)
+        - HOUSE_STYLE.md (spec change)
+        - multiple
+        - unsure
+
+  - type: checkboxes
+    id: contract
+    attributes:
+      label: Contract
+      options:
+        - label: I've read CONTRIBUTING.md and understand audit rule_id stability + the spec/library cross-link discipline.
+          required: true

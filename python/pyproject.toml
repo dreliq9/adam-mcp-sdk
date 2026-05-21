@@ -1,12 +1,31 @@
 [project]
 name = "adam-mcp-py"
 version = "0.3.1"
-description = "Python primitives for the Adam MCP house style"
+description = "Python primitives for the Adam MCP house style — typed Result envelope, comptime-style validation wrappers, escape hatches by default."
 requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Adam Steen", email = "108751318+dreliq9@users.noreply.github.com" }]
+keywords = ["mcp", "model-context-protocol", "sdk", "ai-tools", "agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = [
     "mcp>=1.0",
     "pydantic>=2.5",
 ]
+
+[project.urls]
+Homepage = "https://github.com/dreliq9/adam-mcp-sdk"
+Repository = "https://github.com/dreliq9/adam-mcp-sdk"
+Issues = "https://github.com/dreliq9/adam-mcp-sdk/issues"
+Changelog = "https://github.com/dreliq9/adam-mcp-sdk/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
