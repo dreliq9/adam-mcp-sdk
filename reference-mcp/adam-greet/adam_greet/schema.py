@@ -1,4 +1,5 @@
 """Pydantic schemas for tool inputs. Implements §1.2 + §2.9."""
+
 from __future__ import annotations
 from pydantic import BaseModel, Field
 

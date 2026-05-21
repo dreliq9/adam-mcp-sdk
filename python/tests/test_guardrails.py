@@ -1,4 +1,5 @@
 """Tests for adam_mcp_py.requires — implements §1.3, §6.31."""
+
 from adam_mcp_py import Result, Status, requires
 
 

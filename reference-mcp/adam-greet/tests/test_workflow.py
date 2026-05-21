@@ -1,4 +1,5 @@
 """Tests for adam_greet morning_briefing workflow + tool wrapper."""
+
 from adam_mcp_py import Status
 from adam_greet.workflows import MorningBriefingWorkflow
 from adam_greet.mcp.workflow_tools import morning_briefing

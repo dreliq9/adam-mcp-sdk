@@ -1,4 +1,5 @@
 """Tests for `adam-mcp new`."""
+
 from pathlib import Path
 from adam_mcp_cli.cmd_new import scaffold_new_mcp
 

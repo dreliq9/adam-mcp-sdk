@@ -1,4 +1,5 @@
 """Type definitions for adam-greet. Implements §2.9."""
+
 from __future__ import annotations
 from dataclasses import dataclass, field
 

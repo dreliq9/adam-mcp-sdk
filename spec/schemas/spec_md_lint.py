@@ -2,6 +2,7 @@
 
 Implements parts of §3.13 (SPEC.md is law). Used by `adam-mcp audit`.
 """
+
 from __future__ import annotations
 from pathlib import Path
 

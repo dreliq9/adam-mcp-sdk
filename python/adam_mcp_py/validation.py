@@ -1,4 +1,5 @@
 """Validation decorator — implements §1.2 of HOUSE_STYLE.md."""
+
 from __future__ import annotations
 from functools import wraps
 from typing import Callable, TypeVar
@@ -15,6 +16,7 @@ def validates(model: type[M]) -> Callable:
     The wrapped function receives a parsed model instance instead of a raw dict.
     On validation failure, returns a Result.fail with actionable diagnostics.
     """
+
     def decorator(fn: Callable[[M], Result]) -> Callable[[dict], Result]:
         @wraps(fn)
         def wrapper(input) -> Result:
@@ -24,8 +26,7 @@ def validates(model: type[M]) -> Callable:
                 parsed = model(**input)
             except ValidationError as e:
                 diagnostics = [
-                    f"{'.'.join(str(x) for x in err['loc'])}: {err['msg']}"
-                    for err in e.errors()
+                    f"{'.'.join(str(x) for x in err['loc'])}: {err['msg']}" for err in e.errors()
                 ]
                 fields = ", ".join(d.split(":")[0] for d in diagnostics)
                 return Result.fail(
@@ -33,5 +34,7 @@ def validates(model: type[M]) -> Callable:
                     diagnostics=diagnostics,
                 )
             return fn(parsed)
+
         return wrapper
+
     return decorator

@@ -1,4 +1,5 @@
 """Tests for adam_greet.mcp.greeting_tools."""
+
 from adam_mcp_py import Status
 from adam_greet.mcp.greeting_tools import compose_greeting, compose_personalized_greeting
 

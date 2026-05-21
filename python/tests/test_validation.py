@@ -1,4 +1,5 @@
 """Tests for adam_mcp_py.validates — implements §1.2."""
+
 from pydantic import BaseModel, Field
 from adam_mcp_py import Result, Status, validates
 
@@ -40,6 +41,7 @@ def test_validates_rejects_out_of_range():
 
 def test_validates_accepts_input_kwarg():
     """FastMCP dispatches with `input=...` as kwarg — must work. Regression for §1.5."""
+
     @validates(GreetInput)
     def greet(input: GreetInput) -> Result[str]:
         return Result.ok(value=input.name)
@@ -52,6 +54,7 @@ def test_validates_accepts_input_kwarg():
 def test_validates_accepts_pre_parsed_model_instance():
     """FastMCP validates from JSONSchema before dispatch and may pass the parsed model.
     Wrapper must short-circuit, not double-validate. Regression for §1.5."""
+
     @validates(GreetInput)
     def greet(input: GreetInput) -> Result[str]:
         return Result.ok(value=input.name)

@@ -1,6 +1,7 @@
 """Local backend — in-process fakes, no network. The default. Implements §2.6."""
+
 from __future__ import annotations
-from ..types import WeatherSnapshot, CalendarEvent, MusicTrack, MorningContext
+from ..types import WeatherSnapshot, CalendarEvent, MusicTrack
 
 
 class LocalBackend:

@@ -1,4 +1,5 @@
 """End-to-end integration test for `adam-mcp upgrade`."""
+
 from pathlib import Path
 import shutil
 
@@ -22,6 +23,7 @@ def test_full_upgrade_flow_on_stale_fixture(tmp_path: Path, monkeypatch):
     text = pyproj.read_text()
     # Replace whatever the current pin is with ==0.0.1 (definitely stale)
     import re
+
     new_text = re.sub(r"adam-mcp-py\s*[=<>!]*\s*[\d.]+", "adam-mcp-py==0.0.1", text)
     pyproj.write_text(new_text)
 

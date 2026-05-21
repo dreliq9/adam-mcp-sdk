@@ -1,4 +1,5 @@
 """Pytest helpers for testing adam-mcp-py-based MCPs."""
+
 from __future__ import annotations
 import pytest
 

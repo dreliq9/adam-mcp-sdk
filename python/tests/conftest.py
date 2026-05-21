@@ -1,4 +1,5 @@
 """Shared pytest fixtures for the adam_mcp_py library tests."""
+
 import pytest
 
 

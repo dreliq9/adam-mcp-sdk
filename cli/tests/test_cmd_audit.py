@@ -1,4 +1,5 @@
 """Tests for `adam-mcp audit`."""
+
 from pathlib import Path
 from adam_mcp_cli.cmd_new import scaffold_new_mcp
 from adam_mcp_cli.cmd_audit import audit_project
@@ -39,6 +40,7 @@ def test_audit_warns_when_advisory_mode_on_external_mcp(tmp_target: Path):
 def test_registry_contains_all_known_rule_ids():
     """REGISTRY must enumerate every rule the audit currently enforces."""
     from adam_mcp_cli.audit_rules import REGISTRY
+
     rule_ids = {r.rule_id for r in REGISTRY}
     expected = {"§3.13", "§3.14", "§3.15", "§3.16", "§3.17", "§2.7", "§2.11", "§6.30"}
     missing = expected - rule_ids
@@ -48,7 +50,7 @@ def test_registry_contains_all_known_rule_ids():
 def test_self_check_catches_unreferenced_registry_rule(tmp_path: Path, monkeypatch):
     """Self-check fails when REGISTRY has a rule_id that HOUSE_STYLE.md doesn't document."""
     from adam_mcp_cli.main import _self_check_v2
-    from adam_mcp_cli.audit_rules import REGISTRY, AuditRule, Finding
+    from adam_mcp_cli.audit_rules import REGISTRY, AuditRule
 
     # HOUSE_STYLE.md missing §9.42; CHANGELOG empty
     (tmp_path / "HOUSE_STYLE.md").write_text("# Spec\n\n## §3.13\nSPEC.md required.\n")
@@ -91,6 +93,7 @@ def test_self_check_passes_on_real_repo():
     or (b) the test's idea of 'real repo' is wrong (path issue).
     """
     from adam_mcp_cli.main import _self_check_v2
+
     report = _self_check_v2()
     assert report["status"] == "OK", (
         f"Self-check failed on real SDK repo. Findings: {report['findings']}"

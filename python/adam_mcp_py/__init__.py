@@ -2,6 +2,7 @@
 
 Public API. See HOUSE_STYLE.md for the rules each symbol implements.
 """
+
 from .result import ENVELOPE_VERSION, Raw, Result, Status
 from .validation import validates
 from .guardrails import requires

@@ -1,4 +1,5 @@
 """Tests for adam_mcp_py.BackendProtocol — implements §2.6."""
+
 from adam_mcp_py import BackendProtocol, detect_backend
 
 
@@ -33,7 +34,9 @@ def test_detect_backend_returns_none_if_none_available():
     class Down:
         mode_tag = "[DOWN]"
         available = False
-        def call(self, payload): return {}
+
+        def call(self, payload):
+            return {}
 
     selected = detect_backend([Down()])
     assert selected is None

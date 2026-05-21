@@ -1,4 +1,5 @@
 """Tests for adam_greet escape-hatch tool."""
+
 from adam_mcp_py import Status, is_passthrough
 from adam_greet.mcp.escape_tools import compose_raw_greeting
 

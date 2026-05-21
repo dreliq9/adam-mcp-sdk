@@ -1,5 +1,5 @@
 """Tests for adam_mcp_py.output_dir — implements §2.10."""
-import os
+
 from pathlib import Path
 from adam_mcp_py import output_dir
 

@@ -1,4 +1,5 @@
 """History tools — stateful. Implements §4.19."""
+
 from __future__ import annotations
 import json
 from adam_mcp_py import Result, validates, output_dir

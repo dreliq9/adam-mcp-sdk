@@ -1,4 +1,5 @@
 """Shared fixtures for adam-greet tests."""
+
 import pytest
 
 

@@ -2,6 +2,7 @@
 
 Every tool returns a Result. Never raw output, never raw exceptions.
 """
+
 from __future__ import annotations
 from dataclasses import dataclass, field, asdict
 from enum import Enum
@@ -46,6 +47,7 @@ class Result(Generic[T]):
     kw_only=True keeps positional construction unavailable so the canonical
     field order stays an envelope-shape contract, not an argument convention.
     """
+
     envelope_version: int = ENVELOPE_VERSION
     status: Status
     value: T | None = None

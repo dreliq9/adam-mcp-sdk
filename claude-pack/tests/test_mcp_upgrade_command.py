@@ -1,4 +1,5 @@
 """Structural test for /mcp-upgrade slash command markdown."""
+
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]

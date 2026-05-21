@@ -1,4 +1,5 @@
 """Context tools — multi-source synthesis. Implements §4.18."""
+
 from __future__ import annotations
 from dataclasses import asdict
 from adam_mcp_py import Result

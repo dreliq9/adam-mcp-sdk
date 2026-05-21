@@ -1,4 +1,5 @@
 """Greeting tools — atomic ops. Implements §2.7."""
+
 from __future__ import annotations
 from adam_mcp_py import Result, validates
 from ..backends import LocalBackend

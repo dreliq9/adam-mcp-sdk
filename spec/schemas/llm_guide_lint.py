@@ -2,6 +2,7 @@
 
 Implements §3.14 + §6.32. Used by `adam-mcp audit`.
 """
+
 from __future__ import annotations
 from pathlib import Path
 
@@ -11,7 +12,7 @@ REQUIRED_SECTIONS: list[str] = [
     "## Tool categories",
     "## Parameter gotchas",
     "## Failure",  # matches "## Failure → fix" or "## Failure / fix"
-    "## Mode",     # matches "## Mode/path transparency" etc.
+    "## Mode",  # matches "## Mode/path transparency" etc.
     "## Escape hatches",  # §6.32 — required
 ]
 

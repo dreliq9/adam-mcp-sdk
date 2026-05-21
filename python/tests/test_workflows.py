@@ -1,4 +1,5 @@
 """Tests for adam_mcp_py.Workflow — implements §2.8."""
+
 from adam_mcp_py import Result, Status, Workflow
 
 

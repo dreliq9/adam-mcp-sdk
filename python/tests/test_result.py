@@ -1,4 +1,5 @@
 """Tests for adam_mcp_py.Result — implements §1.1, §6.29."""
+
 from adam_mcp_py import ENVELOPE_VERSION, Raw, Result, Status
 
 
@@ -51,12 +52,14 @@ def test_result_to_dict_preserves_all_fields():
 
 def test_result_warn_without_hint_raises():
     import pytest
+
     with pytest.raises(ValueError, match="hint is required"):
         Result.warn(value=None, hint=None)
 
 
 def test_result_fail_without_hint_raises():
     import pytest
+
     with pytest.raises(ValueError, match="hint is required"):
         Result.fail(hint=None)
 
@@ -88,11 +91,13 @@ def test_to_dict_envelope_version_is_first_key():
 def test_raw_is_alias_for_any():
     """Raw is the self-documenting alias for the §1.1 Any exception on raw."""
     from typing import Any
+
     assert Raw is Any
 
 
 def test_result_construction_is_keyword_only():
     """kw_only=True keeps the envelope field order a contract, not an arg convention."""
     import pytest
+
     with pytest.raises(TypeError):
         Result(Status.OK)  # positional construction is disallowed

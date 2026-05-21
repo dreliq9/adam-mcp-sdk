@@ -1,4 +1,5 @@
 """CLI for adam-greet — third interface layer alongside the lib and MCP. Implements §2.5."""
+
 from __future__ import annotations
 import json
 import sys

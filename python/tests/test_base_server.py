@@ -1,5 +1,5 @@
 """Tests for adam_mcp_py.BaseServer — wraps FastMCP with house-style defaults."""
-import pytest
+
 from adam_mcp_py import BaseServer, Result, Status
 
 
@@ -44,6 +44,7 @@ def test_base_server_wraps_exception_as_fail_with_hint():
 
 def test_base_server_passthrough_decorator_marks_tool():
     from adam_mcp_py import passthrough, is_passthrough
+
     server = BaseServer(name="test-mcp")
 
     @server.tool()

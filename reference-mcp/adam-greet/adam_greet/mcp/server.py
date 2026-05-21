@@ -1,4 +1,5 @@
 """MCP server entrypoint for adam-greet. Wires every tool category into BaseServer."""
+
 from __future__ import annotations
 from adam_mcp_py import BaseServer
 

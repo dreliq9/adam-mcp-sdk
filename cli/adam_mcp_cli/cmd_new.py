@@ -1,4 +1,5 @@
 """`adam-mcp new` — scaffold a new MCP project."""
+
 from __future__ import annotations
 import re
 from pathlib import Path

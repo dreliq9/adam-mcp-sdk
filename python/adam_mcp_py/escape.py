@@ -1,4 +1,5 @@
 """Escape-hatch decorator — implements §6.30 of HOUSE_STYLE.md."""
+
 from __future__ import annotations
 from typing import Callable, TypeVar
 

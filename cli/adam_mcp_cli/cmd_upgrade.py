@@ -3,6 +3,7 @@
 See HOUSE_STYLE.md §7 (Upgrade system) and the design doc at
 docs/superpowers/specs/2026-05-04-mcp-sdk-upgrade-system-design.md.
 """
+
 from __future__ import annotations
 import re
 import subprocess
@@ -71,7 +72,9 @@ def _pypi_latest() -> Optional[str]:
     Kept as the preferred source for when publishing happens.
     """
     try:
-        import urllib.request, json
+        import urllib.request
+        import json
+
         with urllib.request.urlopen("https://pypi.org/pypi/adam-mcp-py/json", timeout=3) as r:
             data = json.load(r)
         return data["info"]["version"]
@@ -85,6 +88,7 @@ def fetch_latest_version() -> str:
     if pypi is not None:
         return pypi
     import adam_mcp_py
+
     return adam_mcp_py.__version__
 
 
@@ -97,8 +101,7 @@ def upgrade(path: Path, target: Optional[str], dry_run: bool) -> dict:
     pyproject_path = path / "pyproject.toml"
     if not pyproject_path.exists():
         return _result_fail(
-            hint=f"pyproject.toml not found at {pyproject_path}. "
-                 "Is this an MCP project root?",
+            hint=f"pyproject.toml not found at {pyproject_path}. Is this an MCP project root?",
         )
 
     try:
@@ -109,25 +112,25 @@ def upgrade(path: Path, target: Optional[str], dry_run: bool) -> dict:
     if current is None:
         return _result_fail(
             hint="pyproject.toml has no adam-mcp-py dependency. "
-                 "Run `adam-mcp new` for a fresh project, or add the dep manually.",
+            "Run `adam-mcp new` for a fresh project, or add the dep manually.",
         )
 
     target = target or fetch_latest_version()
 
     if target == current:
-        return _result_ok(value={"current": current, "target": target},
-                          hint=f"Already on {current}.")
+        return _result_ok(
+            value={"current": current, "target": target}, hint=f"Already on {current}."
+        )
 
     if version_lt(target, current):
         return _result_fail(
             hint=f"Cannot downgrade ({current} → {target}). "
-                 "adam-mcp does not support downgrades. Edit pyproject.toml manually if needed.",
+            "adam-mcp does not support downgrades. Edit pyproject.toml manually if needed.",
         )
 
     if dry_run:
         return _result_ok(
-            value={"current": current, "target": target,
-                   "would_edit": [str(pyproject_path)]},
+            value={"current": current, "target": target, "would_edit": [str(pyproject_path)]},
             hint=f"Dry run: would upgrade {current} → {target}.",
         )
 
@@ -138,11 +141,12 @@ def upgrade(path: Path, target: Optional[str], dry_run: bool) -> dict:
         return _result_fail(
             raw=sync.stderr,
             hint="`uv sync` failed — likely a transitive dep conflict. "
-                 "Read the error above, fix pyproject.toml, then retry.",
+            "Read the error above, fix pyproject.toml, then retry.",
         )
 
     # Run audit
     from .cmd_audit import audit_project
+
     audit_report = audit_project(path)
     findings = audit_report.get("findings", [])
 
@@ -156,16 +160,31 @@ def upgrade(path: Path, target: Optional[str], dry_run: bool) -> dict:
         "diagnostics": [f["message"] for f in findings],
         "hint": (
             f"Upgraded {current} → {target}. {len(findings)} finding(s) — work through them."
-            if findings else f"Upgraded {current} → {target}. No findings."
+            if findings
+            else f"Upgraded {current} → {target}. No findings."
         ),
     }
 
 
 def _result_ok(value=None, hint=None) -> dict:
-    return {"status": "OK", "mode_tag": None, "value": value, "raw": None,
-            "metrics": {}, "diagnostics": [], "hint": hint}
+    return {
+        "status": "OK",
+        "mode_tag": None,
+        "value": value,
+        "raw": None,
+        "metrics": {},
+        "diagnostics": [],
+        "hint": hint,
+    }
 
 
 def _result_fail(raw=None, hint=None) -> dict:
-    return {"status": "FAIL", "mode_tag": None, "value": None, "raw": raw,
-            "metrics": {}, "diagnostics": [], "hint": hint}
+    return {
+        "status": "FAIL",
+        "mode_tag": None,
+        "value": None,
+        "raw": raw,
+        "metrics": {},
+        "diagnostics": [],
+        "hint": hint,
+    }

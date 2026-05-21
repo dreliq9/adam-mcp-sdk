@@ -3,6 +3,7 @@
 If HOUSE_STYLE.md changes Principle Zero, Principle One, §1, or §6, this test fails
 until the skill is updated to match.
 """
+
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
@@ -31,11 +32,10 @@ def test_skill_mirrors_principle_zero():
     skill_text = SKILL.read_text()
     spec_p0 = _extract_sections(spec_text, ["## Principle Zero — AI-shaped, not API-shaped"])
     # Skill must contain the load-bearing sentence verbatim
-    key_sentence = "The unit of a tool is \"a coherent thing an AI can do,\" not \"an API endpoint.\""
+    key_sentence = 'The unit of a tool is "a coherent thing an AI can do," not "an API endpoint."'
     assert key_sentence in spec_p0, "Spec drift: Principle Zero key sentence changed"
     assert key_sentence in skill_text, (
-        "Skill out of sync with HOUSE_STYLE.md Principle Zero. "
-        "Update SKILL.md or update the spec."
+        "Skill out of sync with HOUSE_STYLE.md Principle Zero. Update SKILL.md or update the spec."
     )
 
 
@@ -49,8 +49,14 @@ def test_skill_mirrors_section_1_1_result_type():
     spec_text = SPEC.read_text()
     skill_text = SKILL.read_text()
     # Both must say "every tool returns a typed Result"
-    assert "Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)" in spec_text
-    assert "Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)" in skill_text
+    assert (
+        "Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)"
+        in spec_text
+    )
+    assert (
+        "Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)"
+        in skill_text
+    )
 
 
 def test_skill_has_six_question_checklist():

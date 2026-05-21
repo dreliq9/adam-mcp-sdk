@@ -1,4 +1,5 @@
 """Shared fixtures for adam-mcp-cli tests."""
+
 import pytest
 from pathlib import Path
 

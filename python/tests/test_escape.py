@@ -1,4 +1,5 @@
 """Tests for adam_mcp_py.passthrough — implements §6.30."""
+
 from adam_mcp_py import passthrough, is_passthrough
 
 

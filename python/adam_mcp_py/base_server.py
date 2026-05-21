@@ -5,6 +5,7 @@ Enforces:
 - Exceptions in tools become FAIL Results with hints, never propagate raw.
 - Stderr-only logging (so stdio transport stays clean).
 """
+
 from __future__ import annotations
 import logging
 import sys
@@ -12,7 +13,7 @@ import traceback
 from functools import wraps
 from typing import Any, Callable
 
-from .result import Result, Status
+from .result import Result
 
 logger = logging.getLogger("adam_mcp_py")
 
@@ -32,6 +33,7 @@ def _wrap_tool(fn: Callable) -> Callable:
     - Non-Result returns become Result.fail with hint pointing to §1.1.
     - Exceptions become Result.fail with the traceback in diagnostics.
     """
+
     @wraps(fn)
     def wrapper(*args, **kwargs):
         try:
@@ -51,6 +53,7 @@ def _wrap_tool(fn: Callable) -> Callable:
                 diagnostics=[f"actual return type: {type(result).__name__}"],
             )
         return result
+
     return wrapper
 
 
@@ -72,6 +75,7 @@ class BaseServer:
         # Lazy import to avoid hard-failing when mcp isn't installed
         try:
             from mcp.server.fastmcp import FastMCP
+
             self._fastmcp: Any = FastMCP(name)
         except ImportError:
             logger.warning("mcp package not available; BaseServer running in offline mode")
@@ -80,6 +84,7 @@ class BaseServer:
 
     def tool(self, *args: Any, **kwargs: Any) -> Callable:
         """Decorator that registers a Result-returning tool with the underlying FastMCP."""
+
         def decorator(fn: Callable) -> Callable:
             wrapped = _wrap_tool(fn)
             # Preserve passthrough markers
@@ -88,6 +93,7 @@ class BaseServer:
             if self._fastmcp is not None:
                 self._fastmcp.tool(*args, **kwargs)(wrapped)
             return wrapped
+
         return decorator
 
     def run(self) -> None:

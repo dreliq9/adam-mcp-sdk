@@ -1,4 +1,5 @@
 """Web backend — would call real APIs. In v0.1 it stays unavailable. Implements §2.6."""
+
 from __future__ import annotations
 from ..types import WeatherSnapshot, CalendarEvent, MusicTrack
 

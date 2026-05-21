@@ -1,4 +1,5 @@
 """Escape-hatch tool — Principle One. Implements §6.30."""
+
 from __future__ import annotations
 from adam_mcp_py import Result, validates, passthrough
 from ..schema import RawGreetingInput

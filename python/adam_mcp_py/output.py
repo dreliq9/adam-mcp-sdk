@@ -1,4 +1,5 @@
 """Output directory helper — implements §2.10 of HOUSE_STYLE.md."""
+
 from __future__ import annotations
 from pathlib import Path
 

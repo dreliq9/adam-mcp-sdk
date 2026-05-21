@@ -1,4 +1,5 @@
 """Workflow base class — implements §2.8 of HOUSE_STYLE.md."""
+
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Any
@@ -10,8 +11,8 @@ class Workflow(ABC):
 
     Subclasses must define `name` and implement `run(...)`.
     """
+
     name: str = ""
 
     @abstractmethod
-    def run(self, *args: Any, **kwargs: Any) -> Result:
-        ...
+    def run(self, *args: Any, **kwargs: Any) -> Result: ...

@@ -1,4 +1,5 @@
 """`adam-mcp audit` — mechanical conformance check vs HOUSE_STYLE.md."""
+
 from __future__ import annotations
 from pathlib import Path
 from .audit_rules import run_all_rules

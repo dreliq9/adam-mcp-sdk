@@ -1,4 +1,5 @@
 """Template loader. Walks the _base template tree and renders each .j2 file with substitutions."""
+
 from __future__ import annotations
 from pathlib import Path
 from jinja2 import Environment, BaseLoader, StrictUndefined
