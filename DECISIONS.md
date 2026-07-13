@@ -30,6 +30,18 @@ Architectural and process decisions for the SDK. Each entry: date, decision, rat
 
 **Resolves design-doc §13 Q5** (the previously deferred question about adam-mcp-py's pin style): defer to §2.11's carveout. Reconsider only if compat issues arise.
 
+## 2026-07-13 — Bound the official MCP SDK compatibility line
+
+**Decision:** Superseding the unbounded `mcp>=1.0` minimum above, `adam-mcp-py` supports `mcp>=1.28.1,<2`. MCP applications, including the reference MCP and scaffold template, pin `mcp==1.28.1` exactly.
+
+**Rationale:** The library should compose with downstream dependency graphs while excluding the upcoming MCP 2.x API break. Applications need an exact, reproducible protocol implementation. Version 1.28.1 is the stable API verified by this release.
+
+## 2026-07-13 — Bounded passthrough for safety-critical backends
+
+**Decision:** `@passthrough(bounded=True)` marks the required escape hatch when authorization or hardware safety requires a constrained capability surface. An unbounded passthrough remains the default house-style mechanism for ordinary MCPs.
+
+**Rationale:** Hardware and host-command MCPs need an escape hatch without silently expanding the server's authority. Explicit metadata lets audits and documentation distinguish intentional bounds from an accidentally incomplete passthrough.
+
 ## 2026-05-04 — Reference MCP is a workspace member (deviation from Task 1)
 
 **Decision:** `reference-mcp/adam-greet` is included in the root `pyproject.toml` workspace `members` list, alongside `python` and `cli`.

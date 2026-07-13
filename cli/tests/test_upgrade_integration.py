@@ -20,12 +20,12 @@ def test_full_upgrade_flow_on_stale_fixture(tmp_path: Path, monkeypatch):
 
     # Edit pyproject.toml to set a stale pin
     pyproj = dst / "pyproject.toml"
-    text = pyproj.read_text()
+    text = pyproj.read_text(encoding="utf-8")
     # Replace whatever the current pin is with ==0.0.1 (definitely stale)
     import re
 
     new_text = re.sub(r"adam-mcp-py\s*[=<>!]*\s*[\d.]+", "adam-mcp-py==0.0.1", text)
-    pyproj.write_text(new_text)
+    pyproj.write_text(new_text, encoding="utf-8")
 
     # Mock uv sync so the test doesn't actually run it
     class FakeRun:
@@ -40,7 +40,7 @@ def test_full_upgrade_flow_on_stale_fixture(tmp_path: Path, monkeypatch):
     report = upgrade(dst, target=None, dry_run=False)
 
     # Pin updated
-    final_pyproj = pyproj.read_text()
+    final_pyproj = pyproj.read_text(encoding="utf-8")
     assert "adam-mcp-py==0.2.0" in final_pyproj, final_pyproj
     assert "adam-mcp-py==0.0.1" not in final_pyproj
 

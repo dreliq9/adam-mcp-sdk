@@ -1,10 +1,10 @@
 [project]
 name = "adam-mcp-cli"
-version = "0.2.1"
+version = "0.2.2"
 description = "CLI for the Adam MCP house style"
 requires-python = ">=3.11"
 dependencies = [
-    "adam-mcp-py==0.2.1",
+    "adam-mcp-py==0.3.2",
     "typer>=0.12",
     "jinja2>=3.1",
     "tomlkit>=0.13",

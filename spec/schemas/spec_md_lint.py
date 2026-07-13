@@ -18,7 +18,7 @@ def check_spec_md(path: Path) -> list[str]:
     """Return a list of missing required sections (empty list = pass)."""
     if not path.exists():
         return [f"SPEC.md not found at {path}"]
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     missing: list[str] = []
     for section in REQUIRED_SECTIONS:
         if section not in text:

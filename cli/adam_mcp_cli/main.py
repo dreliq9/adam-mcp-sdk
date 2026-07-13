@@ -98,7 +98,7 @@ def _self_check_v2() -> dict:
             "diagnostics": [],
             "findings": [],
         }
-    spec_text = spec_path.read_text()
+    spec_text = spec_path.read_text(encoding="utf-8")
 
     from importlib import import_module
 
@@ -143,7 +143,7 @@ def _self_check_v2() -> dict:
     # === Check 3: CHANGELOG ### Breaking entries cross-link to REGISTRY ===
     changelog_path = repo / "CHANGELOG.md"
     if changelog_path.exists():
-        changelog_text = changelog_path.read_text()
+        changelog_text = changelog_path.read_text(encoding="utf-8")
         registry_ids = {r.rule_id for r in REGISTRY}
         # Find the most recent version block. Format: `## [X.Y.Z]`
         version_blocks = re.split(r"^## \[", changelog_text, flags=re.MULTILINE)
@@ -179,7 +179,7 @@ def _self_check_v2() -> dict:
     validation_path = repo / "python" / "adam_mcp_py" / "validation.py"
     if validation_path.exists():
         try:
-            tree = ast.parse(validation_path.read_text())
+            tree = ast.parse(validation_path.read_text(encoding="utf-8"))
             wrapper_param = None
             for node in ast.walk(tree):
                 if isinstance(node, ast.FunctionDef) and node.name == "wrapper":

@@ -34,15 +34,15 @@ def test_scaffold_creates_full_layout(tmp_target: Path):
 
 def test_scaffold_substitutes_name(tmp_target: Path):
     scaffold_new_mcp(name="my-thing", description="x", target_dir=tmp_target)
-    pyproject = (tmp_target / "pyproject.toml").read_text()
+    pyproject = (tmp_target / "pyproject.toml").read_text(encoding="utf-8")
     assert 'name = "my-thing"' in pyproject
     assert "my_thing" in pyproject  # snake_case package name
-    init = (tmp_target / "my_thing" / "__init__.py").read_text()
+    init = (tmp_target / "my_thing" / "__init__.py").read_text(encoding="utf-8")
     assert "my-thing" in init
 
 
 def test_scaffold_includes_passthrough_tool(tmp_target: Path):
     scaffold_new_mcp(name="my-thing", description="x", target_dir=tmp_target)
-    escape = (tmp_target / "my_thing" / "mcp" / "escape_tools.py").read_text()
+    escape = (tmp_target / "my_thing" / "mcp" / "escape_tools.py").read_text(encoding="utf-8")
     assert "@passthrough" in escape
     assert "my_thing_passthrough" in escape

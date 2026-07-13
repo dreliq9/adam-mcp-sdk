@@ -14,11 +14,11 @@ def _load() -> list[str]:
     f = _history_file()
     if not f.exists():
         return []
-    return json.loads(f.read_text())
+    return json.loads(f.read_text(encoding="utf-8"))
 
 
 def _save(items: list[str]) -> None:
-    _history_file().write_text(json.dumps(items, indent=2))
+    _history_file().write_text(json.dumps(items, indent=2), encoding="utf-8")
 
 
 @validates(RecordGreetingInput)

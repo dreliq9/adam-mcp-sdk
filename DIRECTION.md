@@ -2,7 +2,7 @@
 
 Where this project is, where it's going, and why. Distinct from `ROADMAP.md` (versioned plans) and `DECISIONS.md` (architectural log). This file is the strategic snapshot — update it when direction changes, not when releases ship.
 
-**Last updated:** 2026-05-20
+**Last updated:** 2026-07-13
 
 ## What this project is
 
@@ -10,20 +10,20 @@ A house-style framework + audit + agentic plugin pack layered on top of the offi
 
 **Niche:** sits between Tier 2 (opinionated frameworks like FastMCP) and Tier 4 (audit tools like mcp-scan). The combination — Principle Zero enforcement + mandatory `Result` envelope + audit-as-migration upgrade system + Claude Code plugin pack — is empty in the surveyed landscape.
 
-## Current state — 2026-05-20
+## Current state — 2026-07-13
 
 | Layer | Status |
 |---|---|
 | `HOUSE_STYLE.md` spec | v2026.05, includes §1.1 (envelope_version + Raw), §3.18 (rule_id stability) |
-| `adam-mcp-py` library | v0.3.1 shipped — envelope_version + Raw exports, kw_only Result, Windows verified |
-| `adam-mcp` CLI | v0.2.1 shipped; subcommands: `new`, `audit`, `audit --self-check`, `upgrade` |
+| `adam-mcp-py` library | v0.3.2 prepared — async-safe wrappers, bounded passthrough metadata, Windows UTF-8/output fixes |
+| `adam-mcp` CLI | v0.2.2 prepared; subcommands: `new`, `audit`, `audit --self-check`, `upgrade` |
 | Plugin pack (Claude Code) | `mcp-author` skill + `/mcp-spec`, `/mcp-scaffold`, `/mcp-audit`, `/mcp-upgrade` |
 | Reference MCP `adam-greet` | passes audit strict mode, 0 findings |
 | Cross-language sibling | `adam-mcp-zig` v0.2.0 shipped, public on GitHub, byte-equivalent wire format |
 | Platform support | macOS / Linux / Windows all first-class |
 | PyPI publishing | Not done yet. Path-install across local machines and the Zig sibling. |
 
-**84 tests** across 4 suites (python/cli/claude-pack/reference-mcp). `--self-check` catches: spec↔library cross-link drift, REGISTRY rule_ids missing from HOUSE_STYLE.md, CHANGELOG `### Breaking` entries citing nonexistent rule_ids.
+Four suites cover the library, CLI, Claude pack, and reference MCP. `--self-check` catches: spec↔library cross-link drift, REGISTRY rule_ids missing from HOUSE_STYLE.md, CHANGELOG `### Breaking` entries citing nonexistent rule_ids.
 
 ## Strategic direction
 
@@ -51,6 +51,8 @@ A house-style framework + audit + agentic plugin pack layered on top of the offi
 
 ## Recent learnings
 
+- **Windows needed executable tests, not documentation-only confidence.** The prior `HOME` and default-codepage assumptions failed on Windows despite the implementation appearing portable. Output roots are now injectable and all repository text I/O is explicitly UTF-8.
+- **FastMCP accepts async tools, so the contract wrapper must preserve async semantics.** A synchronous wrapper around an async tool validates the coroutine object instead of its result. `BaseServer`, `@validates`, and `@requires` now dispatch sync and async callables separately.
 - **The `validates` param-name bug** (v0.2.1) is the kind of issue that only surfaces under real use. v0.1 + v0.2 both shipped with this latent bug because the reference MCP's tools happened to not exercise the pattern that breaks. This is the strongest argument yet for getting external consumers: every additional consumer of the SDK is also an additional probe of its design.
 - **The audit can't catch semantic issues.** A consumer can hit "0 findings strict mode" while still having API-shaped tools returning `str`. Mechanical conformance ≠ Principle Zero conformance. The SPEC.md authoring step is where Principle Zero gets enforced; the audit just enforces the *contract*.
 - **Cross-link discipline pays compound interest.** When v0.3.0 added envelope_version + Raw, the author followed the same pattern: new audit rule + CHANGELOG cross-link + HOUSE_STYLE.md section + test. The discipline is load-bearing — it's what makes "audit-as-migration" actually work across breaking changes.

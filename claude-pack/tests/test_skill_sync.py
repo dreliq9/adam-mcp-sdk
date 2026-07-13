@@ -28,8 +28,8 @@ def _extract_sections(text: str, headers: list[str]) -> str:
 
 
 def test_skill_mirrors_principle_zero():
-    spec_text = SPEC.read_text()
-    skill_text = SKILL.read_text()
+    spec_text = SPEC.read_text(encoding="utf-8")
+    skill_text = SKILL.read_text(encoding="utf-8")
     spec_p0 = _extract_sections(spec_text, ["## Principle Zero — AI-shaped, not API-shaped"])
     # Skill must contain the load-bearing sentence verbatim
     key_sentence = 'The unit of a tool is "a coherent thing an AI can do," not "an API endpoint."'
@@ -40,14 +40,14 @@ def test_skill_mirrors_principle_zero():
 
 
 def test_skill_mirrors_principle_one():
-    skill_text = SKILL.read_text()
+    skill_text = SKILL.read_text(encoding="utf-8")
     assert "Escape hatches always available" in skill_text
     assert "@passthrough" in skill_text
 
 
 def test_skill_mirrors_section_1_1_result_type():
-    spec_text = SPEC.read_text()
-    skill_text = SKILL.read_text()
+    spec_text = SPEC.read_text(encoding="utf-8")
+    skill_text = SKILL.read_text(encoding="utf-8")
     # Both must say "every tool returns a typed Result"
     assert (
         "Result(envelope_version, status, value, raw, metrics, diagnostics, hint, mode_tag)"
@@ -60,6 +60,6 @@ def test_skill_mirrors_section_1_1_result_type():
 
 
 def test_skill_has_six_question_checklist():
-    skill_text = SKILL.read_text()
+    skill_text = SKILL.read_text(encoding="utf-8")
     for n in range(1, 7):
         assert f"{n}. " in skill_text, f"Pre-flight checklist question #{n} missing"

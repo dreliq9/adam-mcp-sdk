@@ -24,7 +24,7 @@ def parse_pin(pyproject_path: Path) -> Optional[str]:
 
     Raises tomlkit's parse errors on malformed TOML.
     """
-    doc = tomlkit.parse(pyproject_path.read_text())
+    doc = tomlkit.parse(pyproject_path.read_text(encoding="utf-8"))
     deps = doc.get("project", {}).get("dependencies", [])
     for dep in deps:
         dep_str = str(dep)
@@ -56,13 +56,13 @@ def update_pin(pyproject_path: Path, new_version: str) -> None:
     Replaces any existing adam-mcp-py pin (==, >=, range) with `==new_version`.
     Preserves order, comments, and other dependencies via tomlkit.
     """
-    doc = tomlkit.parse(pyproject_path.read_text())
+    doc = tomlkit.parse(pyproject_path.read_text(encoding="utf-8"))
     deps = doc["project"]["dependencies"]
     for i, dep in enumerate(deps):
         if str(dep).startswith("adam-mcp-py"):
             deps[i] = f"adam-mcp-py=={new_version}"
             break
-    pyproject_path.write_text(tomlkit.dumps(doc))
+    pyproject_path.write_text(tomlkit.dumps(doc), encoding="utf-8")
 
 
 def _pypi_latest() -> Optional[str]:

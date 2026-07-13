@@ -21,7 +21,7 @@ def check_llm_guide(path: Path) -> list[str]:
     """Return a list of missing required sections (empty list = pass)."""
     if not path.exists():
         return [f"LLM_GUIDE.md not found at {path}"]
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     missing: list[str] = []
     for section in REQUIRED_SECTIONS:
         if section not in text:

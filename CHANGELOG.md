@@ -4,6 +4,21 @@ All notable changes to adam-mcp-sdk.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project uses SemVer for the library and CalVer for the spec.
 
+## [0.3.2] — 2026-07-13
+
+### Added
+- Async support in `BaseServer`, `@validates`, and `@requires`; async tools are awaited before enforcing the `Result` contract.
+- `@passthrough(bounded=True)` metadata for escape hatches whose command or capability surface is intentionally constrained.
+- Explicit output-root injection through `output_dir(..., root=...)` and the `ADAM_MCP_OUTPUT_ROOT` environment variable.
+
+### Fixed
+- Windows test and CLI failures caused by assuming `HOME` controls `Path.home()` and by reading UTF-8 project files with the platform default code page.
+- Exception handling now keeps full tracebacks in server logs while returning only sanitized exception type/message diagnostics to MCP clients.
+- Package metadata drift between the library, CLI, reference MCP, and scaffold template.
+
+### Changed
+- The library supports the stable MCP Python SDK line `>=1.28.1,<2`; reference and generated MCP projects pin `mcp==1.28.1` for reproducibility.
+
 ## [0.3.1] — 2026-05-20
 
 ### Added

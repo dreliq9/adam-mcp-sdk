@@ -1,5 +1,7 @@
 """Tests for adam_mcp_py.requires — implements §1.3, §6.31."""
 
+import pytest
+
 from adam_mcp_py import Result, Status, requires
 
 
@@ -50,3 +52,14 @@ def test_requires_force_overrides_failed_precondition():
     # With force=True the guardrail is bypassed
     assert r.status == Status.OK
     assert r.value == 42
+
+
+@pytest.mark.asyncio
+async def test_requires_supports_async_tools():
+    @requires(auth_ok, fail_hint="run /auth first")
+    async def protected_op() -> Result[int]:
+        return Result.ok(value=42)
+
+    result = await protected_op()
+    assert result.status == Status.OK
+    assert result.value == 42
