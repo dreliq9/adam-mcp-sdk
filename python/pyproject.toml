@@ -2,6 +2,7 @@
 name = "adam-mcp-py"
 version = "0.3.2"
 description = "Python primitives for the Adam MCP house style — typed Result envelope, comptime-style validation wrappers, escape hatches by default."
+readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 authors = [{ name = "Adam Steen", email = "108751318+dreliq9@users.noreply.github.com" }]

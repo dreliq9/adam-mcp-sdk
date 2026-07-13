@@ -72,6 +72,30 @@ jobs:
       - run: uv python install 3.12
       - name: Build python/
         run: uv build --package adam-mcp-py
+      - name: Validate distributions
+        run: uvx --from twine twine check --strict dist/*
+      - name: Smoke-test installed wheel
+        shell: bash
+        run: |
+          wheel=$(find dist -name '*.whl' -print -quit)
+          uv run --isolated --no-project --with "$wheel" python - <<'PY'
+          import asyncio
+          from importlib.metadata import version
+
+          from adam_mcp_py import Result, validates
+          from pydantic import BaseModel
+
+          class Input(BaseModel):
+              value: int
+
+          @validates(Input)
+          async def double(input: Input) -> Result[int]:
+              return Result.ok(value=input.value * 2)
+
+          assert version("adam-mcp-py") == "0.3.2"
+          assert Result.ok(value=7).value == 7
+          assert asyncio.run(double({"value": 6})).value == 12
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: dist
