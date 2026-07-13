@@ -41,6 +41,17 @@ def test_audit_warns_when_advisory_mode_on_external_mcp(tmp_target: Path):
     assert all(f["severity"] != "FAIL" for f in report.get("findings", [])), report
 
 
+def test_audit_does_not_scan_virtual_environment_sources(tmp_target: Path):
+    scaffold_new_mcp(name="test-mcp", description="x", target_dir=tmp_target)
+    third_party = tmp_target / ".venv" / "Lib" / "site-packages" / "dependency.py"
+    third_party.parent.mkdir(parents=True)
+    third_party.write_text("Result('not', 'our', 'code')\n", encoding="utf-8")
+
+    report = audit_project(tmp_target)
+
+    assert all("dependency.py" not in finding["message"] for finding in report["findings"])
+
+
 def test_registry_contains_all_known_rule_ids():
     """REGISTRY must enumerate every rule the audit currently enforces."""
     from adam_mcp_cli.audit_rules import REGISTRY

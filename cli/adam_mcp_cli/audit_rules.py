@@ -7,8 +7,9 @@ pointing back to the spec section that was violated.
 from __future__ import annotations
 import ast
 from dataclasses import dataclass
+import os
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Iterator
 import sys
 
 # Make spec/schemas/ importable
@@ -16,6 +17,28 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(_REPO_ROOT / "spec"))
 from schemas.spec_md_lint import check_spec_md  # noqa: E402
 from schemas.llm_guide_lint import check_llm_guide  # noqa: E402
+
+
+_IGNORED_SOURCE_DIRECTORIES = {
+    ".git",
+    ".venv",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+}
+
+
+def _project_python_files(project_root: Path) -> Iterator[Path]:
+    """Yield project Python files without entering generated or third-party trees."""
+    for current_root, directory_names, file_names in os.walk(project_root):
+        directory_names[:] = [
+            name for name in directory_names if name.casefold() not in _IGNORED_SOURCE_DIRECTORIES
+        ]
+        root = Path(current_root)
+        for file_name in file_names:
+            if file_name.endswith(".py"):
+                yield root / file_name
 
 
 @dataclass
@@ -103,7 +126,7 @@ def _check_spec_md_sections(project_root: Path) -> list[Finding]:
 def _check_passthrough_exists(project_root: Path) -> list[Finding]:
     """§6.30: every MCP must have an @passthrough-decorated tool."""
     found = False
-    for py in project_root.rglob("*.py"):
+    for py in _project_python_files(project_root):
         try:
             if "@passthrough" in py.read_text(encoding="utf-8"):
                 found = True
@@ -132,11 +155,7 @@ def _check_validates_param_name(project_root: Path) -> list[Finding]:
     'unexpected keyword argument'.
     """
     findings: list[Finding] = []
-    for py in project_root.rglob("*.py"):
-        # Skip vendored / virtualenv code
-        parts = set(py.parts)
-        if {".venv", "site-packages", "node_modules", "build", "dist"} & parts:
-            continue
+    for py in _project_python_files(project_root):
         try:
             tree = ast.parse(py.read_text(encoding="utf-8"))
         except (SyntaxError, UnicodeDecodeError, OSError):
@@ -184,9 +203,7 @@ def _check_result_keyword_only(project_root: Path) -> list[Finding]:
     findings: list[Finding] = []
     if _is_advisory(project_root):
         return findings
-    for py in project_root.rglob("*.py"):
-        if "/.venv/" in str(py) or "/build/" in str(py) or "/dist/" in str(py):
-            continue
+    for py in _project_python_files(project_root):
         try:
             tree = ast.parse(py.read_text(encoding="utf-8"), filename=str(py))
         except SyntaxError:
