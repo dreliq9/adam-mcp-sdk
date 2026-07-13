@@ -7,9 +7,9 @@ Enforces:
 """
 
 from __future__ import annotations
+import inspect
 import logging
 import sys
-import traceback
 from functools import wraps
 from typing import Any, Callable
 
@@ -28,31 +28,50 @@ def _configure_stderr_logging() -> None:
     logger.setLevel(logging.INFO)
 
 
+def _exception_result(fn: Callable, error: Exception) -> Result:
+    """Turn a tool exception into a safe Result while logging details to stderr."""
+    logger.exception("Tool '%s' raised", fn.__name__, exc_info=error)
+    return Result.fail(
+        hint=f"Tool '{fn.__name__}' raised. Check inputs or try the escape hatch.",
+        diagnostics=[f"{type(error).__name__}: {error}"],
+    )
+
+
+def _validated_result(fn: Callable, result: object) -> Result:
+    """Enforce the Result contract after a sync or async tool completes."""
+    if isinstance(result, Result):
+        return result
+    return Result.fail(
+        hint=(
+            f"Tool '{fn.__name__}' did not return a Result. "
+            f"All tools must return adam_mcp_py.Result (§1.1)."
+        ),
+        diagnostics=[f"actual return type: {type(result).__name__}"],
+    )
+
+
 def _wrap_tool(fn: Callable) -> Callable:
-    """Wrap a tool so:
-    - Non-Result returns become Result.fail with hint pointing to §1.1.
-    - Exceptions become Result.fail with the traceback in diagnostics.
-    """
+    """Wrap a sync or async tool with Result and exception enforcement."""
+
+    if inspect.iscoroutinefunction(fn):
+
+        @wraps(fn)
+        async def async_wrapper(*args, **kwargs):
+            try:
+                result = await fn(*args, **kwargs)
+            except Exception as error:
+                return _exception_result(fn, error)
+            return _validated_result(fn, result)
+
+        return async_wrapper
 
     @wraps(fn)
     def wrapper(*args, **kwargs):
         try:
             result = fn(*args, **kwargs)
-        except Exception as e:
-            tb = traceback.format_exc()
-            return Result.fail(
-                hint=f"Tool '{fn.__name__}' raised: {e}. Check inputs or try the escape hatch.",
-                diagnostics=[tb],
-            )
-        if not isinstance(result, Result):
-            return Result.fail(
-                hint=(
-                    f"Tool '{fn.__name__}' did not return a Result. "
-                    f"All tools must return adam_mcp_py.Result (§1.1)."
-                ),
-                diagnostics=[f"actual return type: {type(result).__name__}"],
-            )
-        return result
+        except Exception as error:
+            return _exception_result(fn, error)
+        return _validated_result(fn, result)
 
     return wrapper
 
@@ -70,13 +89,13 @@ class BaseServer:
             return Result.ok(value=x * 2)
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, **fastmcp_kwargs: Any):
         _configure_stderr_logging()
         # Lazy import to avoid hard-failing when mcp isn't installed
         try:
             from mcp.server.fastmcp import FastMCP
 
-            self._fastmcp: Any = FastMCP(name)
+            self._fastmcp: Any = FastMCP(name, **fastmcp_kwargs)
         except ImportError:
             logger.warning("mcp package not available; BaseServer running in offline mode")
             self._fastmcp = None
@@ -90,14 +109,16 @@ class BaseServer:
             # Preserve passthrough markers
             if getattr(fn, "__adam_mcp_passthrough__", False):
                 setattr(wrapped, "__adam_mcp_passthrough__", True)
+            if getattr(fn, "__adam_mcp_passthrough_bounded__", False):
+                setattr(wrapped, "__adam_mcp_passthrough_bounded__", True)
             if self._fastmcp is not None:
                 self._fastmcp.tool(*args, **kwargs)(wrapped)
             return wrapped
 
         return decorator
 
-    def run(self) -> None:
+    def run(self, **kwargs: Any) -> None:
         """Run the underlying FastMCP server."""
         if self._fastmcp is None:
             raise RuntimeError("mcp package not installed; cannot run server")
-        self._fastmcp.run()
+        self._fastmcp.run(**kwargs)

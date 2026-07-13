@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from functools import wraps
+import inspect
 from typing import Callable, TypeVar
 from pydantic import BaseModel, ValidationError
 
@@ -18,21 +19,41 @@ def validates(model: type[M]) -> Callable:
     """
 
     def decorator(fn: Callable[[M], Result]) -> Callable[[dict], Result]:
-        @wraps(fn)
-        def wrapper(input) -> Result:
+        def parse(input) -> M | Result:
             if isinstance(input, model):
-                return fn(input)
+                return input
             try:
-                parsed = model(**input)
-            except ValidationError as e:
-                diagnostics = [
-                    f"{'.'.join(str(x) for x in err['loc'])}: {err['msg']}" for err in e.errors()
-                ]
-                fields = ", ".join(d.split(":")[0] for d in diagnostics)
+                return model(**input)
+            except (ValidationError, TypeError) as error:
+                if isinstance(error, ValidationError):
+                    diagnostics = [
+                        f"{'.'.join(str(x) for x in item['loc'])}: {item['msg']}"
+                        for item in error.errors()
+                    ]
+                else:
+                    diagnostics = [f"input: {error}"]
+                fields = ", ".join(item.split(":")[0] for item in diagnostics)
                 return Result.fail(
                     hint=f"Fix the following input fields: {fields}",
                     diagnostics=diagnostics,
                 )
+
+        if inspect.iscoroutinefunction(fn):
+
+            @wraps(fn)
+            async def async_wrapper(input) -> Result:
+                parsed = parse(input)
+                if isinstance(parsed, Result):
+                    return parsed
+                return await fn(parsed)
+
+            return async_wrapper
+
+        @wraps(fn)
+        def wrapper(input) -> Result:
+            parsed = parse(input)
+            if isinstance(parsed, Result):
+                return parsed
             return fn(parsed)
 
         return wrapper

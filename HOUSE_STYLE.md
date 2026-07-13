@@ -24,6 +24,11 @@ Tools shaped for AI consumption are the happy path. They are not a cage.
 
 When an agent's task doesn't fit any tool's shape, it must be able to drop down to the underlying API/library/protocol directly. The MCP adds value by lifting common cases; it must never block the uncommon case.
 
+An escape hatch remains inside the server's authorization and safety boundary.
+Servers that can execute host commands, alter safety-critical systems, or cross
+credential/path scopes use a documented bounded passthrough rather than exposing
+an unrestricted bypass.
+
 Canonical example: `caid-mcp`'s `run_cadquery_script`. Full validated tool surface for common operations, plus an unconstrained script-runner for everything else.
 
 ---
@@ -113,7 +118,10 @@ Higher-order compositions distinct from atomic tools live in `<package>/workflow
 
 ### §2.10 Predictable output location
 
-Side effects go to `~/<domain>-output/`. Use `output_dir(name)` from the library.
+Side effects go to `~/<domain>-output/` by default. Use `output_dir(name)` from the
+library. Tests, managed deployments, and applications with an established state
+root may pass `root=` or set `ADAM_MCP_OUTPUT_ROOT`; this is the portable override
+and does not rely on platform-specific `HOME` behavior.
 
 → Library: `adam_mcp_py.output_dir`
 
@@ -250,6 +258,12 @@ Synthesized output goes in `Result.value`. Raw API response goes in `Result.raw`
 For MCPs wrapping an external API: a tool that makes raw API calls. For MCPs over an own-kernel/own-engine (archi-style): a tool that runs raw scripts/queries against the engine.
 
 Decorated with `@passthrough`. One per server, enforced. Generic name: `<domain>_passthrough` or `run_<domain>_script`. Canonical example: `caid-mcp`'s `run_cadquery_script`.
+
+For safety-critical, destructive, credential-bearing, or host-execution backends,
+use `@passthrough(bounded=True)`. A bounded passthrough exposes the lowest-level
+operation that remains inside the server's documented authorization, path, and
+safety policy. It must document the omitted capabilities. “Escape hatch” does not
+mean bypassing authorization or safety boundaries.
 
 → Library: `adam_mcp_py.passthrough`
 

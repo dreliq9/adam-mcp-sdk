@@ -2,7 +2,7 @@
 
 A methodology-first MCP (Model Context Protocol) SDK for **Python 3.11+**. Typed `Result` envelope, validation wrappers, escape hatches by default. One repo, multiple deliverables — library, CLI, Claude Code plugin, reference MCP.
 
-**Status:** v0.3.1 (2026-05-20). 84 passing tests across library/CLI/plugin/reference-mcp. Windows is a first-class platform. Cross-language byte-equivalent envelope with the Zig sibling, [adam-mcp-zig](https://github.com/dreliq9/adam-mcp-zig).
+**Status:** v0.3.2 (2026-07-13). Async tools and Windows UTF-8/output handling are verified across library/CLI/plugin/reference-mcp. Windows is a first-class platform. Cross-language byte-equivalent envelope with the Zig sibling, [adam-mcp-zig](https://github.com/dreliq9/adam-mcp-zig).
 
 > **Pre-1.0.** The public API of `adam_mcp_py` may break between minor versions. SemVer guarantees kick in at v1.0. Pin exact versions in your dependencies until then.
 
@@ -69,7 +69,7 @@ adam-mcp new my-thing
 adam-mcp audit ~/Projects/my-thing
 
 # Bump the adam-mcp-py pin in a downstream MCP + run audit
-adam-mcp upgrade ~/Projects/my-thing --to 0.3.1
+adam-mcp upgrade ~/Projects/my-thing --to 0.3.2
 
 # Self-check (verifies cross-link integrity in this repo)
 adam-mcp audit --self-check

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 from functools import wraps
+import inspect
 from typing import Callable, Literal
 
 from .result import Result
@@ -23,19 +24,33 @@ def requires(
     """
 
     def decorator(fn: Callable) -> Callable:
-        @wraps(fn)
-        def wrapper(*args, force: bool = False, **kwargs):
-            if force or precondition():
-                return fn(*args, **kwargs)
+        def failed_result() -> Result:
             if severity == "FAIL":
                 return Result.fail(
-                    hint=fail_hint, diagnostics=[f"precondition failed: {precondition.__name__}"]
+                    hint=fail_hint,
+                    diagnostics=[f"precondition failed: {precondition.__name__}"],
                 )
             return Result.warn(
                 value=None,
                 hint=fail_hint,
                 diagnostics=[f"precondition failed: {precondition.__name__}"],
             )
+
+        if inspect.iscoroutinefunction(fn):
+
+            @wraps(fn)
+            async def async_wrapper(*args, force: bool = False, **kwargs):
+                if force or precondition():
+                    return await fn(*args, **kwargs)
+                return failed_result()
+
+            return async_wrapper
+
+        @wraps(fn)
+        def wrapper(*args, force: bool = False, **kwargs):
+            if force or precondition():
+                return fn(*args, **kwargs)
+            return failed_result()
 
         return wrapper
 

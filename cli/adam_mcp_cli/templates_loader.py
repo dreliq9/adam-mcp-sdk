@@ -32,9 +32,9 @@ def render_tree(target_dir: Path, context: dict[str, str]) -> None:
             continue
         if src.suffix == ".j2":
             dest = dest.with_suffix("")  # strip .j2
-            tmpl = env.from_string(src.read_text())
+            tmpl = env.from_string(src.read_text(encoding="utf-8"))
             dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(tmpl.render(**context))
+            dest.write_text(tmpl.render(**context), encoding="utf-8")
         else:
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(src.read_bytes())

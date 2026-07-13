@@ -54,7 +54,7 @@ def _is_advisory(project_root: Path) -> bool:
     pyproject = project_root / "pyproject.toml"
     if not pyproject.exists():
         return True
-    return "adam-mcp-py" not in pyproject.read_text()
+    return "adam-mcp-py" not in pyproject.read_text(encoding="utf-8")
 
 
 def _check_required_files(project_root: Path) -> list[Finding]:
@@ -105,7 +105,7 @@ def _check_passthrough_exists(project_root: Path) -> list[Finding]:
     found = False
     for py in project_root.rglob("*.py"):
         try:
-            if "@passthrough" in py.read_text():
+            if "@passthrough" in py.read_text(encoding="utf-8"):
                 found = True
                 break
         except (UnicodeDecodeError, OSError):
@@ -138,7 +138,7 @@ def _check_validates_param_name(project_root: Path) -> list[Finding]:
         if {".venv", "site-packages", "node_modules", "build", "dist"} & parts:
             continue
         try:
-            tree = ast.parse(py.read_text())
+            tree = ast.parse(py.read_text(encoding="utf-8"))
         except (SyntaxError, UnicodeDecodeError, OSError):
             continue
         for node in ast.walk(tree):
@@ -188,7 +188,7 @@ def _check_result_keyword_only(project_root: Path) -> list[Finding]:
         if "/.venv/" in str(py) or "/build/" in str(py) or "/dist/" in str(py):
             continue
         try:
-            tree = ast.parse(py.read_text(), filename=str(py))
+            tree = ast.parse(py.read_text(encoding="utf-8"), filename=str(py))
         except SyntaxError:
             continue
         for node in ast.walk(tree):
@@ -212,7 +212,7 @@ def _check_tool_files_naming(project_root: Path) -> list[Finding]:
     """§2.7: tools live in <package>/mcp/<area>_tools.py. Warn if a server.py has many tools."""
     findings: list[Finding] = []
     for server_py in project_root.rglob("mcp/server.py"):
-        text = server_py.read_text()
+        text = server_py.read_text(encoding="utf-8")
         decorator_count = text.count(".tool()")
         if decorator_count > 30:
             findings.append(

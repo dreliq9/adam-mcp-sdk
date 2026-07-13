@@ -22,7 +22,9 @@ def test_audit_fails_missing_llm_guide(tmp_target: Path):
 
 def test_audit_fails_missing_passthrough(tmp_target: Path):
     scaffold_new_mcp(name="test-mcp", description="x", target_dir=tmp_target)
-    (tmp_target / "test_mcp" / "mcp" / "escape_tools.py").write_text("# no passthrough here\n")
+    (tmp_target / "test_mcp" / "mcp" / "escape_tools.py").write_text(
+        "# no passthrough here\n", encoding="utf-8"
+    )
     report = audit_project(tmp_target)
     assert report["status"] == "FAIL"
     assert any("passthrough" in f["message"].lower() for f in report["findings"])
@@ -31,7 +33,9 @@ def test_audit_fails_missing_passthrough(tmp_target: Path):
 def test_audit_warns_when_advisory_mode_on_external_mcp(tmp_target: Path):
     """An MCP that doesn't import adam-mcp-py runs in advisory mode (WARN, not FAIL)."""
     tmp_target.mkdir(parents=True)
-    (tmp_target / "pyproject.toml").write_text('[project]\nname = "external"\nversion = "0.1.0"\n')
+    (tmp_target / "pyproject.toml").write_text(
+        '[project]\nname = "external"\nversion = "0.1.0"\n', encoding="utf-8"
+    )
     report = audit_project(tmp_target)
     assert report["mode"] == "advisory"
     assert all(f["severity"] != "FAIL" for f in report.get("findings", [])), report
@@ -53,8 +57,10 @@ def test_self_check_catches_unreferenced_registry_rule(tmp_path: Path, monkeypat
     from adam_mcp_cli.audit_rules import REGISTRY, AuditRule
 
     # HOUSE_STYLE.md missing §9.42; CHANGELOG empty
-    (tmp_path / "HOUSE_STYLE.md").write_text("# Spec\n\n## §3.13\nSPEC.md required.\n")
-    (tmp_path / "CHANGELOG.md").write_text("# Changelog\n")
+    (tmp_path / "HOUSE_STYLE.md").write_text(
+        "# Spec\n\n## §3.13\nSPEC.md required.\n", encoding="utf-8"
+    )
+    (tmp_path / "CHANGELOG.md").write_text("# Changelog\n", encoding="utf-8")
     monkeypatch.setattr("adam_mcp_cli.main._SELF_CHECK_REPO_ROOT", tmp_path)
 
     # Inject a synthetic rule into the live REGISTRY for the test
@@ -74,10 +80,13 @@ def test_self_check_catches_orphan_changelog_breaking(tmp_path: Path, monkeypatc
     from adam_mcp_cli.main import _self_check_v2
 
     # Build a fake repo root with a synthetic CHANGELOG and HOUSE_STYLE.md
-    (tmp_path / "HOUSE_STYLE.md").write_text("# Spec\n\n## §3.13\nSPEC.md required.\n")
+    (tmp_path / "HOUSE_STYLE.md").write_text(
+        "# Spec\n\n## §3.13\nSPEC.md required.\n", encoding="utf-8"
+    )
     (tmp_path / "CHANGELOG.md").write_text(
         "# Changelog\n\n## [0.2.0] — 2026-05-10\n\n### Breaking\n\n"
-        "- **§9.99** — Nonexistent rule.\n  Migration: this should fail self-check.\n"
+        "- **§9.99** — Nonexistent rule.\n  Migration: this should fail self-check.\n",
+        encoding="utf-8",
     )
     monkeypatch.setattr("adam_mcp_cli.main._SELF_CHECK_REPO_ROOT", tmp_path)
 

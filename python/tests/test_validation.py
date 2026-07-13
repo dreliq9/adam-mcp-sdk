@@ -1,5 +1,6 @@
 """Tests for adam_mcp_py.validates — implements §1.2."""
 
+import pytest
 from pydantic import BaseModel, Field
 from adam_mcp_py import Result, Status, validates
 
@@ -67,3 +68,14 @@ def test_validates_accepts_pre_parsed_model_instance():
     r2 = greet(input=parsed)
     assert r2.status == Status.OK
     assert r2.value == "Adam"
+
+
+@pytest.mark.asyncio
+async def test_validates_supports_async_tools():
+    @validates(GreetInput)
+    async def greet(input: GreetInput) -> Result[str]:
+        return Result.ok(value=input.name)
+
+    result = await greet({"name": "Async", "formality": 5})
+    assert result.status == Status.OK
+    assert result.value == "Async"
