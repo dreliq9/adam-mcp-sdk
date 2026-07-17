@@ -61,7 +61,7 @@ uv add adam-mcp-py
 
 ### CLI
 
-`adam-mcp-cli` 0.2.2 is prepared for its first PyPI publication. Once published:
+`adam-mcp-cli` 0.2.2 is published on PyPI:
 
 ```bash
 uv tool install adam-mcp-cli
