@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
-    tags: ["v*"]
+    tags: ["v*", "cli-v*"]
   pull_request:
     branches: [main]
 
@@ -100,3 +100,46 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  build-cli:
+    name: build + smoke test (adam-mcp-cli)
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv python install 3.12
+      - name: Build cli/
+        run: uv build --package adam-mcp-cli --out-dir dist-cli
+      - name: Validate distributions
+        run: uvx --from twine twine check --strict dist-cli/*
+      - name: Smoke-test installed wheel
+        shell: bash
+        run: |
+          set -euo pipefail
+          wheel=$(find dist-cli -name '*.whl' -print -quit)
+          target=$(mktemp -d)/example-mcp
+          outside=$(mktemp -d)
+
+          uv run --isolated --no-project --with "$wheel" adam-mcp --help
+          uv run --isolated --no-project --with "$wheel" \
+            adam-mcp new example-mcp --description "wheel smoke test" --target "$target"
+          test -f "$target/example_mcp/mcp/server.py"
+          uv run --isolated --no-project --with "$wheel" adam-mcp audit "$target"
+          uv run --isolated --no-project --with "$wheel" \
+            adam-mcp upgrade "$target" --to 0.3.2 --dry-run
+
+          set +e
+          output=$(uv run --isolated --no-project --with "$wheel" \
+            adam-mcp audit "$outside" --self-check 2>&1)
+          status=$?
+          set -e
+          test "$status" -eq 1
+          grep -F "adam-mcp-sdk checkout" <<<"$output"
+          ! grep -F "Traceback" <<<"$output"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist-cli
+          path: dist-cli/
