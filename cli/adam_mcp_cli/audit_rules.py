@@ -10,13 +10,9 @@ from dataclasses import dataclass
 import os
 from pathlib import Path
 from typing import Callable, Iterator
-import sys
 
-# Make spec/schemas/ importable
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(_REPO_ROOT / "spec"))
-from schemas.spec_md_lint import check_spec_md  # noqa: E402
-from schemas.llm_guide_lint import check_llm_guide  # noqa: E402
+from .schemas.llm_guide_lint import check_llm_guide
+from .schemas.spec_md_lint import check_spec_md
 
 
 _IGNORED_SOURCE_DIRECTORIES = {

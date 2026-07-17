@@ -1,8 +1,22 @@
 [project]
 name = "adam-mcp-cli"
 version = "0.2.2"
-description = "CLI for the Adam MCP house style"
+description = "Scaffold and audit MCP servers using the Adam MCP house style"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "Adam Steen" }]
 requires-python = ">=3.11"
+keywords = ["mcp", "model-context-protocol", "cli", "scaffolding", "audit"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Code Generators",
+]
 dependencies = [
     "adam-mcp-py==0.3.2",
     "typer>=0.12",
@@ -16,12 +30,28 @@ dev = ["pytest>=8.0"]
 [project.scripts]
 adam-mcp = "adam_mcp_cli.main:app"
 
+[project.urls]
+Homepage = "https://github.com/dreliq9/adam-mcp-sdk"
+Repository = "https://github.com/dreliq9/adam-mcp-sdk"
+Issues = "https://github.com/dreliq9/adam-mcp-sdk/issues"
+Changelog = "https://github.com/dreliq9/adam-mcp-sdk/blob/main/CHANGELOG.md"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["adam_mcp_cli"]
+artifacts = ["adam_mcp_cli/templates/**/*.j2"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/adam_mcp_cli",
+    "/tests",
+    "/README.md",
+    "/LICENSE",
+    "/pyproject.toml",
+]
 
 [tool.uv.sources]
 adam-mcp-py = { workspace = true }

@@ -4,6 +4,14 @@ All notable changes to adam-mcp-sdk.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project uses SemVer for the library and CalVer for the spec.
 
+## [adam-mcp-cli 0.2.2] — 2026-07-17
+
+### Fixed
+- Audit schema helpers and scaffolding templates now ship inside the `adam-mcp-cli` wheel.
+- Normal installed-wheel commands no longer depend on an SDK checkout.
+- `audit --self-check` now returns a structured failure outside the SDK repository.
+- CI installs and exercises the built CLI wheel.
+
 ## [0.3.2] — 2026-07-13
 
 ### Added

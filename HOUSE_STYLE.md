@@ -92,7 +92,7 @@ Every `@validates(Model)`-decorated tool function must name its first parameter 
 
 Core lib → MCP layer → CLI. The MCP is a thin wrapper over a usable library; the CLI is too. Tools never reach into framework internals.
 
-→ Template: `python/templates/_base/`
+→ Template: `cli/adam_mcp_cli/templates/_base/`
 
 ### §2.6 Pluggable backends
 

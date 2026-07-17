@@ -53,11 +53,22 @@ cd $HOME\Projects\adam-mcp-sdk
 uv sync --all-extras
 ```
 
-The library itself (`adam-mcp-py`) is also installable from PyPI once published:
+The library distribution (`adam-mcp-py`) is publicly available from PyPI:
 
 ```bash
 uv add adam-mcp-py
 ```
+
+### CLI
+
+`adam-mcp-cli` 0.2.2 is prepared for its first PyPI publication. Once published:
+
+```bash
+uv tool install adam-mcp-cli
+adam-mcp --help
+```
+
+The PyPI distribution is `adam-mcp-cli`; the installed command is `adam-mcp`.
 
 ## Usage
 
