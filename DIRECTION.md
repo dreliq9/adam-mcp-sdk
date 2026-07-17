@@ -2,7 +2,7 @@
 
 Where this project is, where it's going, and why. Distinct from `ROADMAP.md` (versioned plans) and `DECISIONS.md` (architectural log). This file is the strategic snapshot — update it when direction changes, not when releases ship.
 
-**Last updated:** 2026-07-13
+**Last updated:** 2026-07-17
 
 ## What this project is
 
@@ -10,18 +10,18 @@ A house-style framework + audit + agentic plugin pack layered on top of the offi
 
 **Niche:** sits between Tier 2 (opinionated frameworks like FastMCP) and Tier 4 (audit tools like mcp-scan). The combination — Principle Zero enforcement + mandatory `Result` envelope + audit-as-migration upgrade system + Claude Code plugin pack — is empty in the surveyed landscape.
 
-## Current state — 2026-07-13
+## Current state — 2026-07-17
 
 | Layer | Status |
 |---|---|
 | `HOUSE_STYLE.md` spec | v2026.05, includes §1.1 (envelope_version + Raw), §3.18 (rule_id stability) |
-| `adam-mcp-py` library | v0.3.2 prepared — async-safe wrappers, bounded passthrough metadata, Windows UTF-8/output fixes |
-| `adam-mcp` CLI | v0.2.2 prepared; subcommands: `new`, `audit`, `audit --self-check`, `upgrade` |
+| `adam-mcp-py` library | v0.3.2 published on PyPI — async-safe wrappers, bounded passthrough metadata, Windows UTF-8/output fixes |
+| `adam-mcp-cli` distribution / `adam-mcp` command | v0.2.2 prepared for first publication; installed-wheel validation is the release gate; subcommands: `new`, `audit`, `audit --self-check`, `upgrade` |
 | Plugin pack (Claude Code) | `mcp-author` skill + `/mcp-spec`, `/mcp-scaffold`, `/mcp-audit`, `/mcp-upgrade` |
 | Reference MCP `adam-greet` | passes audit strict mode, 0 findings |
 | Cross-language sibling | `adam-mcp-zig` v0.2.0 shipped, public on GitHub, byte-equivalent wire format |
 | Platform support | macOS / Linux / Windows all first-class |
-| PyPI publishing | Not done yet. Path-install across local machines and the Zig sibling. |
+| PyPI publishing | `adam-mcp-py` 0.3.2 is published; `adam-mcp-cli` 0.2.2 remains pending until the CLI wheel-publishing plan completes. |
 
 Four suites cover the library, CLI, Claude pack, and reference MCP. `--self-check` catches: spec↔library cross-link drift, REGISTRY rule_ids missing from HOUSE_STYLE.md, CHANGELOG `### Breaking` entries citing nonexistent rule_ids.
 
@@ -36,7 +36,7 @@ Four suites cover the library, CLI, Claude pack, and reference MCP. `--self-chec
 
 ### Open strategic questions
 
-1. **PyPI publishing.** Blocking real `adam-mcp upgrade` against external MCPs without `tool.uv.sources` path workarounds. One hour of manual `uv build` + `uv publish` resolves it; trusted-publishing via GitHub Actions is the polished version. Likely happens alongside the public-launch pass for this repo.
+1. **First CLI PyPI publication.** `adam-mcp-py` 0.3.2 is published on PyPI. `adam-mcp-cli` 0.2.2 remains pending until the CLI wheel-publishing plan completes; installed-wheel validation is the release gate. Publication will make the `adam-mcp` command installable through `uv tool install adam-mcp-cli` without an SDK checkout. Trusted publishing via GitHub Actions remains the polished follow-up.
 
 2. **Spec 2 (incremental authoring).** `tool add` / `workflow add` / `/mcp-tool` for adding tools to existing MCPs without re-scaffolding. Decoupled from cross-language pack work; takes ~half a day. **Not blocking; lower priority than landing more real consumers.**
 
