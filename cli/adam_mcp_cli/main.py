@@ -7,11 +7,6 @@ from pathlib import Path
 from typing import Optional
 import typer
 
-# Module-level repo root, monkeypatchable for tests. Defined before the
-# sibling-module imports below so test code can monkeypatch this constant
-# before any function that closes over it runs.
-_SELF_CHECK_REPO_ROOT: Path = Path(__file__).resolve().parents[2]
-
 from .cmd_new import scaffold_new_mcp  # noqa: E402
 from .cmd_audit import audit_project  # noqa: E402
 
@@ -48,7 +43,7 @@ def cmd_audit(
 ):
     """Run mechanical conformance check against HOUSE_STYLE.md."""
     if self_check:
-        report = _self_check_v2()
+        report = _self_check_v2(path.resolve())
     else:
         report = audit_project(path)
     typer.echo(json.dumps(report, indent=2))
@@ -75,29 +70,35 @@ def cmd_upgrade(
         raise typer.Exit(code=1)
 
 
-def _self_check_v2() -> dict:
-    """Extended self-check (v0.2). Verifies:
-      1. Spec ↔ library cross-links (existing v0.1 behavior, preserved below)
-      2. Every REGISTRY rule_id appears in HOUSE_STYLE.md
-      3. Every CHANGELOG ### Breaking bullet's §X.Y resolves to a REGISTRY rule_id
+_SELF_CHECK_SENTINELS = (
+    "HOUSE_STYLE.md",
+    "CHANGELOG.md",
+    "cli/adam_mcp_cli/audit_rules.py",
+    "python/adam_mcp_py/validation.py",
+)
 
-    Implements §5.27 (existing) + §5.28 + §5.29 (new in v0.2).
-    """
+
+def _self_check_v2(repo_root: Path | None = None) -> dict:
+    """Run SDK repository cross-link checks from an explicit checkout root."""
     from .audit_rules import REGISTRY
 
+    repo = (repo_root or Path.cwd()).resolve()
+    missing = [relative for relative in _SELF_CHECK_SENTINELS if not (repo / relative).is_file()]
+    if missing:
+        return {
+            "status": "FAIL",
+            "mode": "self-check",
+            "value": None,
+            "metrics": {"findings": 0, "fails": 1},
+            "diagnostics": missing,
+            "findings": [],
+            "hint": "Run audit --self-check from the adam-mcp-sdk checkout root.",
+        }
+
     findings: list[dict] = []
-    repo = _SELF_CHECK_REPO_ROOT
 
     # === Check 1: spec ↔ library cross-links (preserved from v0.1) ===
     spec_path = repo / "HOUSE_STYLE.md"
-    if not spec_path.exists():
-        return {
-            "status": "FAIL",
-            "value": None,
-            "hint": f"HOUSE_STYLE.md missing at {spec_path}",
-            "diagnostics": [],
-            "findings": [],
-        }
     spec_text = spec_path.read_text(encoding="utf-8")
 
     from importlib import import_module

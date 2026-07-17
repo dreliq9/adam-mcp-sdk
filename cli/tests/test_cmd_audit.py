@@ -62,7 +62,20 @@ def test_registry_contains_all_known_rule_ids():
     assert not missing, f"REGISTRY missing rule_ids: {missing}"
 
 
-def test_self_check_catches_unreferenced_registry_rule(tmp_path: Path, monkeypatch):
+def test_self_check_outside_sdk_checkout_returns_structured_failure(tmp_path: Path):
+    from adam_mcp_cli.main import _self_check_v2
+
+    report = _self_check_v2(tmp_path)
+
+    assert report["status"] == "FAIL"
+    assert report["mode"] == "self-check"
+    assert report["value"] is None
+    assert "adam-mcp-sdk checkout" in report["hint"]
+    assert "HOUSE_STYLE.md" in report["diagnostics"]
+    assert report["findings"] == []
+
+
+def test_self_check_catches_unreferenced_registry_rule(tmp_path: Path):
     """Self-check fails when REGISTRY has a rule_id that HOUSE_STYLE.md doesn't document."""
     from adam_mcp_cli.main import _self_check_v2
     from adam_mcp_cli.audit_rules import REGISTRY, AuditRule
@@ -72,13 +85,18 @@ def test_self_check_catches_unreferenced_registry_rule(tmp_path: Path, monkeypat
         "# Spec\n\n## §3.13\nSPEC.md required.\n", encoding="utf-8"
     )
     (tmp_path / "CHANGELOG.md").write_text("# Changelog\n", encoding="utf-8")
-    monkeypatch.setattr("adam_mcp_cli.main._SELF_CHECK_REPO_ROOT", tmp_path)
+    (tmp_path / "cli" / "adam_mcp_cli").mkdir(parents=True)
+    (tmp_path / "cli" / "adam_mcp_cli" / "audit_rules.py").write_text("", encoding="utf-8")
+    (tmp_path / "python" / "adam_mcp_py").mkdir(parents=True)
+    (tmp_path / "python" / "adam_mcp_py" / "validation.py").write_text(
+        "def wrapper(input):\n    return input\n", encoding="utf-8"
+    )
 
     # Inject a synthetic rule into the live REGISTRY for the test
     fake_rule = AuditRule("§9.42", "HOUSE_STYLE.md §9.42", "FAIL", "fake", lambda p: [])
     REGISTRY.append(fake_rule)
     try:
-        report = _self_check_v2()
+        report = _self_check_v2(tmp_path)
     finally:
         REGISTRY.remove(fake_rule)
 
@@ -86,7 +104,7 @@ def test_self_check_catches_unreferenced_registry_rule(tmp_path: Path, monkeypat
     assert any("§9.42" in f["message"] for f in report["findings"]), report
 
 
-def test_self_check_catches_orphan_changelog_breaking(tmp_path: Path, monkeypatch):
+def test_self_check_catches_orphan_changelog_breaking(tmp_path: Path):
     """Self-check fails when a CHANGELOG ### Breaking bullet references a non-existent rule_id."""
     from adam_mcp_cli.main import _self_check_v2
 
@@ -99,22 +117,23 @@ def test_self_check_catches_orphan_changelog_breaking(tmp_path: Path, monkeypatc
         "- **§9.99** — Nonexistent rule.\n  Migration: this should fail self-check.\n",
         encoding="utf-8",
     )
-    monkeypatch.setattr("adam_mcp_cli.main._SELF_CHECK_REPO_ROOT", tmp_path)
+    (tmp_path / "cli" / "adam_mcp_cli").mkdir(parents=True)
+    (tmp_path / "cli" / "adam_mcp_cli" / "audit_rules.py").write_text("", encoding="utf-8")
+    (tmp_path / "python" / "adam_mcp_py").mkdir(parents=True)
+    (tmp_path / "python" / "adam_mcp_py" / "validation.py").write_text(
+        "def wrapper(input):\n    return input\n", encoding="utf-8"
+    )
 
-    report = _self_check_v2()
+    report = _self_check_v2(tmp_path)
     assert report["status"] == "FAIL", report
     assert any("§9.99" in f["message"] for f in report["findings"]), report
 
 
 def test_self_check_passes_on_real_repo():
-    """Sanity check: the SDK's own state passes the v0.2 self-check.
-
-    If this fails, either: (a) a real registry/spec drift exists and must be fixed,
-    or (b) the test's idea of 'real repo' is wrong (path issue).
-    """
     from adam_mcp_cli.main import _self_check_v2
 
-    report = _self_check_v2()
+    repo_root = Path(__file__).resolve().parents[2]
+    report = _self_check_v2(repo_root)
     assert report["status"] == "OK", (
         f"Self-check failed on real SDK repo. Findings: {report['findings']}"
     )
