@@ -82,7 +82,8 @@ jobs:
           import asyncio
           from importlib.metadata import version
 
-          from adam_mcp_py import Result, validates
+          from adam_mcp_py import BaseServer, Result, validates
+          from mcp import Client
           from pydantic import BaseModel
 
           class Input(BaseModel):
@@ -92,9 +93,23 @@ jobs:
           async def double(input: Input) -> Result[int]:
               return Result.ok(value=input.value * 2)
 
-          assert version("adam-mcp-py") == "0.3.2"
+          assert version("adam-mcp-py") == "0.3.3"
+          assert version("mcp") == "2.0.0"
           assert Result.ok(value=7).value == 7
           assert asyncio.run(double({"value": 6})).value == 12
+
+          async def protocol_smoke() -> None:
+              server = BaseServer("wheel-smoke")
+
+              @server.tool()
+              def add(a: int, b: int) -> Result[int]:
+                  return Result.ok(value=a + b)
+
+              async with Client(server.mcp_server) as client:
+                  result = await client.call_tool("add", {"a": 2, "b": 3})
+              assert result.structured_content["value"] == 5
+
+          asyncio.run(protocol_smoke())
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -111,29 +126,37 @@ jobs:
         with:
           enable-cache: true
       - run: uv python install 3.12
-      - name: Build cli/
-        run: uv build --package adam-mcp-cli --out-dir dist-cli
+      - name: Build cli/ and its unreleased library dependency
+        run: |
+          uv build --package adam-mcp-py --out-dir dist-cli-deps
+          uv build --package adam-mcp-cli --out-dir dist-cli
       - name: Validate distributions
-        run: uvx --from twine twine check --strict dist-cli/*
+        run: |
+          uvx --from twine twine check --strict dist-cli/*
+          uvx --from twine twine check --strict dist-cli-deps/*
       - name: Smoke-test installed wheel
         shell: bash
         run: |
           set -euo pipefail
           wheel=$(find dist-cli -name '*.whl' -print -quit)
+          libwheel=$(find dist-cli-deps -name '*.whl' -print -quit)
           target=$(mktemp -d)/example-mcp
           outside=$(mktemp -d)
 
-          uv run --isolated --no-project --with "$wheel" adam-mcp --help
-          uv run --isolated --no-project --with "$wheel" \
-            adam-mcp new example-mcp --description "wheel smoke test" --target "$target"
+          run_cli() {
+            uv run --isolated --no-project --with "$libwheel" --with "$wheel" "$@"
+          }
+
+          run_cli adam-mcp --help
+          run_cli adam-mcp new example-mcp --description "wheel smoke test" --target "$target"
           test -f "$target/example_mcp/mcp/server.py"
-          uv run --isolated --no-project --with "$wheel" adam-mcp audit "$target"
-          uv run --isolated --no-project --with "$wheel" \
-            adam-mcp upgrade "$target" --to 0.3.2 --dry-run
+          grep -F '"adam-mcp-py==0.3.3"' "$target/pyproject.toml"
+          grep -F '"mcp==2.0.0"' "$target/pyproject.toml"
+          run_cli adam-mcp audit "$target"
+          run_cli adam-mcp upgrade "$target" --to 0.3.3 --dry-run
 
           set +e
-          output=$(uv run --isolated --no-project --with "$wheel" \
-            adam-mcp audit "$outside" --self-check 2>&1)
+          output=$(run_cli adam-mcp audit "$outside" --self-check 2>&1)
           status=$?
           set -e
           test "$status" -eq 1
