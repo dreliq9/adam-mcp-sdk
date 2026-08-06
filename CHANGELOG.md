@@ -15,6 +15,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Thi
 - `BaseServer` now wraps `mcp.server.MCPServer`; the public Adam `BaseServer`/`tool()`/`run()` surface is unchanged.
 - Direct `BaseServer.run()` follows MCP v2's stdio-by-default behavior.
 
+## [adam-mcp-cli 0.2.3] — 2026-08-06
+
+### Changed
+- `adam-mcp new` now scaffolds `adam-mcp-py==0.3.3` with `mcp==2.0.0`, so newly generated projects start on the MCP 2026-07-28-capable SDK line.
+- The CLI package now depends on `adam-mcp-py==0.3.3`.
+- CI smoke-tests the CLI wheel together with the unreleased library wheel, avoiding a false dependency on PyPI publication order.
+
 ## [adam-mcp-cli 0.2.2] — 2026-07-17
 
 ### Fixed
