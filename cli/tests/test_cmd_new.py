@@ -1,6 +1,7 @@
 """Tests for `adam-mcp new`."""
 
 from pathlib import Path
+
 from adam_mcp_cli.cmd_new import scaffold_new_mcp
 
 
@@ -39,6 +40,14 @@ def test_scaffold_substitutes_name(tmp_target: Path):
     assert "my_thing" in pyproject  # snake_case package name
     init = (tmp_target / "my_thing" / "__init__.py").read_text(encoding="utf-8")
     assert "my-thing" in init
+
+
+def test_scaffold_pins_current_adam_and_mcp_v2(tmp_target: Path):
+    scaffold_new_mcp(name="my-thing", description="x", target_dir=tmp_target)
+    pyproject = (tmp_target / "pyproject.toml").read_text(encoding="utf-8")
+    assert '"adam-mcp-py==0.3.3"' in pyproject
+    assert '"mcp==2.0.0"' in pyproject
+    assert "mcp==1." not in pyproject
 
 
 def test_scaffold_includes_passthrough_tool(tmp_target: Path):
