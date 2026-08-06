@@ -15,4 +15,5 @@ async def async_double(value: int) -> Result[int]:
 
 
 if __name__ == "__main__":
-    server.run(transport="stdio")
+    # MCP Python SDK v2 defaults to stdio for direct run().
+    server.run()
