@@ -8,9 +8,10 @@ locations, and explicit escape hatches.
 pip install adam-mcp-py
 ```
 
-Version 0.3.2 supports Python 3.11+ and MCP Python SDK releases from 1.28.1 up to,
-but not including, 2.0. It adds async-safe server/decorator behavior and portable
-Windows output and UTF-8 handling.
+Version 0.3.3 supports Python 3.11+ and pins the stable MCP Python SDK 2.0.0,
+including the 2026-07-28 protocol line with backward compatibility for older MCP
+clients. `BaseServer` now wraps `MCPServer` while preserving the existing Adam
+house-style decorator and Result-enforcement surface.
 
 The package is pre-1.0; pin exact versions in downstream applications. See the
 [repository](https://github.com/dreliq9/adam-mcp-sdk) for documentation, examples,

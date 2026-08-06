@@ -1,12 +1,7 @@
-"""Tests for adam_mcp_py.BaseServer — wraps FastMCP with house-style defaults."""
-
-import json
-import sys
-from pathlib import Path
+"""Tests for adam_mcp_py.BaseServer — wraps MCPServer with house-style defaults."""
 
 import pytest
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+from mcp import Client
 
 from adam_mcp_py import BaseServer, Result, Status
 
@@ -51,7 +46,7 @@ def test_base_server_wraps_exception_as_fail_with_hint():
 
 
 def test_base_server_passthrough_decorator_marks_tool():
-    from adam_mcp_py import passthrough, is_passthrough
+    from adam_mcp_py import is_passthrough, passthrough
 
     server = BaseServer(name="test-mcp")
 
@@ -61,6 +56,11 @@ def test_base_server_passthrough_decorator_marks_tool():
         return Result.ok(value=script)
 
     assert is_passthrough(run_raw_script)
+
+
+def test_base_server_exposes_underlying_mcp_server():
+    server = BaseServer(name="test-mcp")
+    assert server.mcp_server.name == "test-mcp"
 
 
 @pytest.mark.asyncio
@@ -104,16 +104,18 @@ async def test_base_server_wraps_async_non_result_as_fail():
 
 
 @pytest.mark.asyncio
-async def test_base_server_async_tool_over_stdio_protocol():
-    fixture = Path(__file__).with_name("async_server_fixture.py")
-    parameters = StdioServerParameters(command=sys.executable, args=[str(fixture)])
+async def test_base_server_async_tool_over_v2_in_memory_protocol():
+    """Exercise the 2026-era v2 protocol without a subprocess transport."""
+    server = BaseServer(name="async-test-server")
 
-    async with stdio_client(parameters) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            response = await session.call_tool("async_double", {"value": 6})
+    @server.tool()
+    async def async_double(value: int) -> Result[int]:
+        return Result.ok(value=value * 2)
 
-    assert response.isError is False
-    payload = json.loads(response.content[0].text)
+    async with Client(server.mcp_server) as client:
+        response = await client.call_tool("async_double", {"value": 6})
+
+    payload = response.structured_content
+    assert payload is not None
     assert payload["status"] == "OK"
     assert payload["value"] == 12

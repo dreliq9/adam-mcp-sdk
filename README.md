@@ -2,7 +2,7 @@
 
 A methodology-first MCP (Model Context Protocol) SDK for **Python 3.11+**. Typed `Result` envelope, validation wrappers, escape hatches by default. One repo, multiple deliverables — library, CLI, Claude Code plugin, reference MCP.
 
-**Status:** v0.3.2 (2026-07-13). Async tools and Windows UTF-8/output handling are verified across library/CLI/plugin/reference-mcp. Windows is a first-class platform. Cross-language byte-equivalent envelope with the Zig sibling, [adam-mcp-zig](https://github.com/dreliq9/adam-mcp-zig).
+**Status:** v0.3.3 (2026-08-06). Migrated to the stable MCP Python SDK v2 / 2026-07-28 protocol line while retaining the Adam house-style API. Async tools and Windows UTF-8/output handling are verified across library/CLI/plugin/reference-mcp. Windows is a first-class platform. Cross-language byte-equivalent envelope with the Zig sibling, [adam-mcp-zig](https://github.com/dreliq9/adam-mcp-zig).
 
 > **Pre-1.0.** The public API of `adam_mcp_py` may break between minor versions. SemVer guarantees kick in at v1.0. Pin exact versions in your dependencies until then.
 
@@ -18,7 +18,7 @@ Most MCP servers in the wild are shallow wrappers — one tool per API endpoint,
 - **`@passthrough`** — marks a tool as the documented escape hatch. Every MCP ships one.
 - **`BackendProtocol` + `detect_backend`** — interface for IPC/local/web backends; `mode_tag` surfaces which path was used on every `Result`.
 - **`Workflow`** — class for higher-order compositions distinct from atomic tools.
-- **`BaseServer`** — `FastMCP` wrapper that enforces every tool returns `Result`, coerces non-`Result` returns to `Result.fail`, and traps exceptions.
+- **`BaseServer`** — MCP Python SDK v2 `MCPServer` wrapper that enforces every tool returns `Result`, coerces non-`Result` returns to `Result.fail`, and traps exceptions.
 
 The single load-bearing principle: **AI-shaped, not API-shaped.** One tool per *coherent thing an AI can do*, not one tool per API endpoint. House style and rationale live in [HOUSE_STYLE.md](./HOUSE_STYLE.md).
 
@@ -80,7 +80,7 @@ adam-mcp new my-thing
 adam-mcp audit ~/Projects/my-thing
 
 # Bump the adam-mcp-py pin in a downstream MCP + run audit
-adam-mcp upgrade ~/Projects/my-thing --to 0.3.2
+adam-mcp upgrade ~/Projects/my-thing --to 0.3.3
 
 # Self-check (verifies cross-link integrity in this repo)
 adam-mcp audit --self-check
@@ -123,11 +123,13 @@ The decorators enforce:
 - Every WARN/FAIL has a hint (required by `Result.warn` / `Result.fail` factory methods).
 - Every passthrough is detectable for audit purposes via the `__adam_mcp_passthrough__` marker.
 
+`BaseServer.mcp_server` exposes the underlying v2 `MCPServer` for advanced integration and in-memory protocol tests. MCP SDK v2 serves the 2026-07-28 revision while retaining compatibility with older MCP clients.
+
 ---
 
 ## Platform support
 
-The Python SDK targets POSIX (macOS + Linux) and Windows as first-class platforms. The codebase uses `pathlib.Path` and `Path.home()` throughout; no POSIX-specific syscalls. FastMCP (the underlying MCP transport) handles stdio JSON-RPC on both platforms.
+The Python SDK targets POSIX (macOS + Linux) and Windows as first-class platforms. The codebase uses `pathlib.Path` and `Path.home()` throughout; no POSIX-specific syscalls. MCP Python SDK v2 handles stdio transport on both platforms.
 
 | | macOS / Linux | Windows |
 |---|---|---|

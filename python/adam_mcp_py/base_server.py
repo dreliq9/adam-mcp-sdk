@@ -1,4 +1,4 @@
-"""BaseServer — house-style FastMCP wrapper.
+"""BaseServer — house-style wrapper around MCP Python SDK v2's MCPServer.
 
 Enforces:
 - Every tool returns Result. Non-Result returns are coerced to FAIL with hint pointing to §1.1.
@@ -7,6 +7,7 @@ Enforces:
 """
 
 from __future__ import annotations
+
 import inspect
 import logging
 import sys
@@ -19,7 +20,7 @@ logger = logging.getLogger("adam_mcp_py")
 
 
 def _configure_stderr_logging() -> None:
-    """Configure logging to use stderr only — never corrupt stdio JSON-RPC."""
+    """Configure logging to use stderr only — never corrupt stdio protocol traffic."""
     if logger.handlers:
         return
     h = logging.StreamHandler(sys.stderr)
@@ -77,9 +78,11 @@ def _wrap_tool(fn: Callable) -> Callable:
 
 
 class BaseServer:
-    """Wraps FastMCP with house-style enforcement.
+    """Wrap MCPServer with Adam house-style enforcement.
 
-    Implements parts of §1.1 (Result enforcement), §1.4 (mode/path), §2.5 (three-layer).
+    Implements parts of §1.1 (Result enforcement), §1.4 (mode/path), and
+    §2.5 (three-layer architecture). MCP Python SDK v2 renamed the high-level
+    server from FastMCP to MCPServer; the decorator surface remains compatible.
 
     Usage:
         server = BaseServer(name="my-mcp")
@@ -89,20 +92,28 @@ class BaseServer:
             return Result.ok(value=x * 2)
     """
 
-    def __init__(self, name: str, **fastmcp_kwargs: Any):
+    def __init__(self, name: str, **mcp_server_kwargs: Any):
         _configure_stderr_logging()
-        # Lazy import to avoid hard-failing when mcp isn't installed
+        # Lazy import keeps the module importable in tooling contexts where
+        # runtime dependencies have intentionally not been installed yet.
         try:
-            from mcp.server.fastmcp import FastMCP
+            from mcp.server import MCPServer
 
-            self._fastmcp: Any = FastMCP(name, **fastmcp_kwargs)
+            self._mcp_server: Any = MCPServer(name, **mcp_server_kwargs)
         except ImportError:
             logger.warning("mcp package not available; BaseServer running in offline mode")
-            self._fastmcp = None
+            self._mcp_server = None
         self.name = name
 
+    @property
+    def mcp_server(self) -> Any:
+        """Expose the underlying MCPServer for in-memory clients and advanced integration."""
+        if self._mcp_server is None:
+            raise RuntimeError("mcp package not installed; MCPServer is unavailable")
+        return self._mcp_server
+
     def tool(self, *args: Any, **kwargs: Any) -> Callable:
-        """Decorator that registers a Result-returning tool with the underlying FastMCP."""
+        """Decorator that registers a Result-returning tool with the underlying MCPServer."""
 
         def decorator(fn: Callable) -> Callable:
             wrapped = _wrap_tool(fn)
@@ -111,14 +122,14 @@ class BaseServer:
                 setattr(wrapped, "__adam_mcp_passthrough__", True)
             if getattr(fn, "__adam_mcp_passthrough_bounded__", False):
                 setattr(wrapped, "__adam_mcp_passthrough_bounded__", True)
-            if self._fastmcp is not None:
-                self._fastmcp.tool(*args, **kwargs)(wrapped)
+            if self._mcp_server is not None:
+                self._mcp_server.tool(*args, **kwargs)(wrapped)
             return wrapped
 
         return decorator
 
     def run(self, **kwargs: Any) -> None:
-        """Run the underlying FastMCP server."""
-        if self._fastmcp is None:
+        """Run the underlying MCPServer. With no arguments, v2 defaults to stdio."""
+        if self._mcp_server is None:
             raise RuntimeError("mcp package not installed; cannot run server")
-        self._fastmcp.run(**kwargs)
+        self._mcp_server.run(**kwargs)
