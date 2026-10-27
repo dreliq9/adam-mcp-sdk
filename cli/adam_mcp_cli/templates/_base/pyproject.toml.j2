@@ -1,12 +1,12 @@
 [project]
-name = "{{name}}"
+name = {{name_literal}}
 version = "0.1.0"
-description = "{{description}}"
+description = {{description_literal}}
 requires-python = ">=3.11"
 dependencies = [
     "adam-mcp-py==0.3.3",
     "mcp==2.0.0",
-    "pydantic>=2.5",
+    "pydantic~=2.5",
 ]
 
 [project.optional-dependencies]
@@ -16,8 +16,8 @@ dev = [
 ]
 
 [project.scripts]
-{{name}} = "{{name_snake}}.cli:main"
-{{name}}-mcp = "{{name_snake}}.mcp.server:main"
+{{cli_script_literal}} = "{{name_snake}}.cli:main"
+{{mcp_script_literal}} = "{{name_snake}}.mcp.server:main"
 
 [build-system]
 requires = ["hatchling"]

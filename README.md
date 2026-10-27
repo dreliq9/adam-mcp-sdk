@@ -156,3 +156,10 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md). Short version: PRs welcome, file an is
 ## License
 
 [MIT](./LICENSE).
+
+## MCP 2 migration qualification
+
+See [the qualification record](docs/MCP2-QUALIFICATION.md) for the locked SDK/CLI
+versions, repeatable isolated gates, installed-wheel/stdin-stdout checks and
+explicit downstream blockers. A passing SDK gate does not upgrade or qualify an
+existing MCP 1 environment.

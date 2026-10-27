@@ -12,7 +12,7 @@ import inspect
 import logging
 import sys
 from functools import wraps
-from typing import Any, Callable
+from typing import Any, Callable, get_origin
 
 from .result import Result
 
@@ -77,6 +77,30 @@ def _wrap_tool(fn: Callable) -> Callable:
     return wrapper
 
 
+def _registration_signature(fn: Callable, wrapped: Callable) -> None:
+    """Advertise the envelope that enforcement actually returns, including FAIL."""
+    signature = inspect.signature(fn, eval_str=False)
+    namespace = getattr(inspect.unwrap(fn), "__globals__", {})
+
+    def resolve(annotation: Any) -> Any:
+        # These are trusted Python function annotations, as evaluated by MCP.
+        return eval(annotation, namespace) if isinstance(annotation, str) else annotation
+
+    parameters = [
+        parameter.replace(annotation=resolve(parameter.annotation))
+        for parameter in signature.parameters.values()
+    ]
+    try:
+        annotation = resolve(signature.return_annotation)
+    except NameError:
+        # A bad return hint must not prevent the actual Result envelope from
+        # being registered. Unresolved input annotations still fail explicitly.
+        annotation = Result[Any]
+    if annotation is not Result and get_origin(annotation) is not Result:
+        annotation = Result[Any]
+    wrapped.__signature__ = signature.replace(parameters=parameters, return_annotation=annotation)
+
+
 class BaseServer:
     """Wrap MCPServer with Adam house-style enforcement.
 
@@ -117,6 +141,7 @@ class BaseServer:
 
         def decorator(fn: Callable) -> Callable:
             wrapped = _wrap_tool(fn)
+            _registration_signature(fn, wrapped)
             # Preserve passthrough markers
             if getattr(fn, "__adam_mcp_passthrough__", False):
                 setattr(wrapped, "__adam_mcp_passthrough__", True)

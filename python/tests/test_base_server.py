@@ -115,7 +115,7 @@ async def test_base_server_async_tool_over_v2_in_memory_protocol():
     async with Client(server.mcp_server) as client:
         response = await client.call_tool("async_double", {"value": 6})
 
-    payload = response.structured_content
+    payload = response.structured_content["result"]
     assert payload is not None
     assert payload["status"] == "OK"
     assert payload["value"] == 12

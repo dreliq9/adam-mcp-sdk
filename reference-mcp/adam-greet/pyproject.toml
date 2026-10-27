@@ -2,11 +2,12 @@
 name = "adam-greet"
 version = "0.1.0"
 description = "Reference MCP for the Adam house style — context-aware morning greeting"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "adam-mcp-py==0.3.3",
     "mcp==2.0.0",
-    "pydantic>=2.5",
+    "pydantic~=2.5",
 ]
 
 [project.optional-dependencies]
