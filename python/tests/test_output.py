@@ -4,9 +4,11 @@ from pathlib import Path
 from adam_mcp_py import output_dir
 
 
-def test_output_dir_default_location():
+def test_output_dir_default_location(tmp_path, monkeypatch):
+    monkeypatch.delenv("ADAM_MCP_OUTPUT_ROOT", raising=False)
+    monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
     p = output_dir("adam-greet")
-    assert p == Path.home() / "adam-greet-output"
+    assert p == tmp_path / "adam-greet-output"
 
 
 def test_output_dir_creates_directory(tmp_path, monkeypatch):

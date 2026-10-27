@@ -4,6 +4,35 @@ All notable changes to adam-mcp-sdk.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). This project uses SemVer for the library and CalVer for the spec.
 
+## [0.3.3] — 2026-08-06
+
+### Breaking
+- **§1.5** — MCP 2 structured dataclass output contains the unchanged version-1 Adam envelope under `structured_content["result"]`; consumers must use the MCP 2 response contract. Text content still carries the envelope directly.
+- **§2.11** — SDK 0.3.3 requires MCP 2.0.0. Applications pinned to MCP 1, or using removed FastMCP/private framework APIs, need a separate migration before adopting this SDK. Existing environments are not upgraded automatically.
+
+### Fixed
+- Regenerate the workspace lock to match SDK 0.3.3, CLI 0.2.3 and MCP 2.0.0, and enforce locked CI execution.
+- Preserve Result envelopes through protocol serialization for missing/incorrect return annotations, including unresolved return forward references.
+- Escape scaffold metadata and Python descriptions, normalize safe project names, and reject Python-keyword package names before writing.
+- Keep output-directory fixtures isolated on Windows and POSIX; add reference distribution readme metadata.
+
+
+### Added
+- `BaseServer.mcp_server` exposes the underlying MCP Python SDK v2 `MCPServer` for in-memory protocol tests and advanced integration.
+- Protocol coverage now exercises tools through the v2 first-class `Client` against an in-memory server, covering the 2026-07-28 protocol path without a subprocess.
+
+### Changed
+- `adam-mcp-py` and the `adam-greet` reference MCP now pin the stable MCP Python SDK `mcp==2.0.0`.
+- `BaseServer` now wraps `mcp.server.MCPServer`; the public Adam `BaseServer`/`tool()`/`run()` surface is unchanged.
+- Direct `BaseServer.run()` follows MCP v2's stdio-by-default behavior.
+
+## [adam-mcp-cli 0.2.3] — 2026-08-06
+
+### Changed
+- `adam-mcp new` now scaffolds `adam-mcp-py==0.3.3` with `mcp==2.0.0`, so newly generated projects start on the MCP 2026-07-28-capable SDK line.
+- The CLI package now depends on `adam-mcp-py==0.3.3`.
+- CI smoke-tests the CLI wheel together with the unreleased library wheel, avoiding a false dependency on PyPI publication order.
+
 ## [adam-mcp-cli 0.2.2] — 2026-07-17
 
 ### Fixed

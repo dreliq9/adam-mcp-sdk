@@ -29,7 +29,11 @@ def cmd_new(
     if target_dir.exists() and any(target_dir.iterdir()):
         typer.echo(f"FAIL: {target_dir} exists and is non-empty.")
         raise typer.Exit(code=1)
-    scaffold_new_mcp(name=name, description=description, target_dir=target_dir)
+    try:
+        scaffold_new_mcp(name=name, description=description, target_dir=target_dir)
+    except ValueError as error:
+        typer.echo(f"FAIL: {error}")
+        raise typer.Exit(code=2) from error
     typer.echo(f"OK: scaffolded {name} at {target_dir}")
     typer.echo(f"hint: cd {target_dir} && uv sync && pytest tests/ -v")
 
